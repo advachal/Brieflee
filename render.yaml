@@ -1,5 +1,6 @@
 # Render blueprint for the knowledge service. In the Render dashboard set
-# GEMINI_API_KEY (or ANTHROPIC_API_KEY) for AI document analysis and answers.
+# GROQ_API_KEY (and optionally GEMINI_API_KEY as a fallback) for the AI reading of
+# questions and documents and the AI check of results.
 services:
   - type: web
     name: brieflee-knowledge
@@ -8,6 +9,8 @@ services:
     plan: free
     healthCheckPath: /v1/health
     envVars:
+      - key: GROQ_API_KEY
+        sync: false
       - key: GEMINI_API_KEY
         sync: false
       - key: GEMINI_MODEL
