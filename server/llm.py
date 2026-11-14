@@ -139,7 +139,12 @@ def _ssl_context():
         return ssl.create_default_context()
 
 
+recent_errors: list[str] = []
+
+
 def log(msg: str) -> None:
+    recent_errors.append(time.strftime("%H:%M:%S ") + msg[:300])
+    del recent_errors[:-8]
     print(f"[llm] {msg}", file=sys.stderr, flush=True)
 
 

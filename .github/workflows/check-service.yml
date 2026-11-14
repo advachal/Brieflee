@@ -48,3 +48,7 @@ jobs:
           curl -sS -m 30 -o /dev/null -D - -X OPTIONS "$URL/v1/analyze" \
             -H 'Origin: https://advachal.github.io' -H 'Access-Control-Request-Method: POST' \
             -H 'Access-Control-Request-Headers: content-type' | grep -i access-control
+      - name: Recent AI errors on the server
+        if: always()
+        run: |
+          curl -fsS -m 60 "$URL/v1/health" | python3 -c "import json,sys;[print(e) for e in json.load(sys.stdin).get('recent_ai_errors',[])]"
