@@ -101,8 +101,11 @@ class KnowledgeLayer:
             m = metas.get(rid)
             if not m:
                 continue
-            if interp["subject_matchers"] and not any(f(m["case_type"]) for f in interp["subject_matchers"]):
-                continue
+            # A matching case type lifts a decision; it no longer excludes others,
+            # because the archive holds many courts and case types and a question
+            # can name several subjects ("section 37" is arbitration and NDPS).
+            if interp["subject_matchers"] and any(f(m["case_type"] or "") for f in interp["subject_matchers"]):
+                r.score *= 1.6
             if interp["sections"]:
                 acts = json.loads(m["acts"] or "[]")
                 if any(any(a.startswith(f"s.{s} ") for a in acts) for s in interp["sections"]):

@@ -4,11 +4,10 @@ name: Deploy to Hugging Face
 # running the knowledge service, pointed at the database on the knowledge-db
 # release. Needs repository secrets HF_TOKEN (write) and, for AI reading,
 # GEMINI_API_KEY.
+# Note (2026-11): Hugging Face now requires a paid plan for Docker Spaces, so
+# this runs only by hand.
 on:
   workflow_dispatch:
-  push:
-    branches: [main]
-    paths: [server/**, deploy/hf-space/**, .github/workflows/deploy-hf-space.yml]
 
 jobs:
   deploy:
