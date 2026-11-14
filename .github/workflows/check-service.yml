@@ -29,6 +29,11 @@ jobs:
             --data '{"question":"set aside arbitral award under section 34"}' "$URL/v1/ask" \
             -o ask.json -w "HTTP %{http_code} in %{time_total}s\n"
           python3 -c "import json;j=json.load(open('ask.json'));print(j['similar_decisions'],[c['name'] for c in j['counsel'][:5]])" || head -c 500 ask.json
+      - name: Extract case facts from the sample judgment
+        run: |
+          python3 -c "import json;print(json.dumps({'text':open('test/fixtures/sample_judgment.txt').read()}))" > body.json
+          curl -sS -m 240 -H 'content-type: application/json' --data @body.json "$URL/v1/extract" -o facts.json -w "HTTP %{http_code} in %{time_total}s\n"
+          python3 -c "import json;f=json.load(open('facts.json'));print('facts:',{k:f.get(k) for k in ('court','case_number','deciding_judges','procedural_stage','client_side','case_category','provider')});print('counsel:',len(f.get('counsel',[])),'issues:',f.get('issues'))" || head -c 500 facts.json
       - name: Analyze the sample judgment
         run: |
           python3 -c "import json;print(json.dumps({'text':open('test/fixtures/sample_judgment.txt').read()}))" > body.json
