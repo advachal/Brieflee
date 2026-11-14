@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:brieflee/core/public_records/ask_engine.dart';
+import 'package:brieflee/core/public_records/directory.dart';
 import 'package:brieflee/core/public_records/knowledge.dart';
 import 'package:brieflee/core/public_records/public_records.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -129,5 +130,56 @@ void main() {
     final a = engine.ask(q, side: SideChoice.respondent);
     expect(a.interpretation.side, RecordSide.respondent);
     expect(a.hits, isNotEmpty);
+  });
+
+  group('directory', () {
+    late RecordsDirectory dir;
+    setUpAll(() {
+      final sw = Stopwatch()..start();
+      dir = RecordsDirectory(snap);
+      // ignore: avoid_print
+      print('directory built in ${sw.elapsedMilliseconds} ms');
+    });
+
+    test('counsel stats match the records they come from', () {
+      final top = dir.topCounsel(minDecided: 5);
+      expect(top, isNotEmpty);
+      final c = top.first;
+      expect(c.isGovernment, isFalse);
+      expect(c.decided, greaterThanOrEqualTo(5));
+      expect(c.appearances, snap.appearanceCount(c.id));
+      for (var i = 1; i < top.length; i++) {
+        expect(top[i - 1].smoothedRate >= top[i].smoothedRate, isTrue);
+      }
+    });
+
+    test('live search finds advocates, judges and cases as you type', () {
+      final c = dir.topCounsel(minDecided: 5).first;
+      final surname = c.name.split(' ').last;
+      final r = dir.quickSearch(surname.substring(0, 4));
+      expect(r.counsel.map((h) => h.stat.id), isNotEmpty);
+      expect(dir.searchCounsel(c.name).first.id, c.id);
+
+      final j = dir.judges.firstWhere((j) => j.decisions > 100);
+      final jr = dir.quickSearch(j.name.split(' ').last);
+      expect(jr.judges.map((h) => h.stat.id), contains(j.id));
+
+      final rec = snap.records.first;
+      final cr = dir.quickSearch('${rec.caseNo}/${rec.regYear}');
+      expect(cr.cases.map((h) => h.record.id), contains(rec.id));
+
+      expect(
+        dir.quickSearch('arbitra').subjects.map((h) => h.subject.id),
+        contains('arbitration'),
+      );
+    });
+
+    test('subject counsel stats only count that subject', () {
+      final ip = dir.counselFor('ip');
+      final total = ip.fold<int>(0, (a, c) => a + c.appearances);
+      final all = dir.counsel.fold<int>(0, (a, c) => a + c.appearances);
+      expect(total, greaterThan(0));
+      expect(total, lessThan(all));
+    });
   });
 }

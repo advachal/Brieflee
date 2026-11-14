@@ -33,4 +33,20 @@ class KnowledgeServiceClient {
     final body = jsonDecode(res.body) as Map<String, dynamic>;
     return body['answer'] as String?;
   }
+
+  /// Sends an uploaded document's text for analysis: the service chunks it,
+  /// finds its legal issues with Claude and links each issue to similar
+  /// decisions in the knowledge layer. Returns null when unavailable.
+  Future<Map<String, dynamic>?> analyzeDocument(String text) async {
+    if (!configured) return null;
+    final res = await _client
+        .post(
+          Uri.parse('$_base/v1/analyze'),
+          headers: {'content-type': 'application/json'},
+          body: jsonEncode({'text': text}),
+        )
+        .timeout(const Duration(seconds: 150));
+    if (res.statusCode != 200) return null;
+    return jsonDecode(utf8.decode(res.bodyBytes)) as Map<String, dynamic>;
+  }
 }

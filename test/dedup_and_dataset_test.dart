@@ -1,8 +1,6 @@
 import 'package:brieflee/core/intelligence/judgment_deduplicator.dart';
 import 'package:brieflee/core/mock/demo_dataset.dart';
 import 'package:brieflee/core/models/models.dart';
-import 'package:brieflee/features/advocate_search/data/mock_recommendation_repository.dart';
-import 'package:brieflee/features/judgment_viewer/data/mock_judgment_repository.dart';
 import 'package:brieflee/shared/utilities/mock_latency.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -79,34 +77,5 @@ void main() {
       expect(j.title, contains('(Demo)'));
       expect(j.sources, isNotEmpty);
     }
-  });
-
-  test('demo recommendation ranks some advocates and flags thin evidence', () async {
-    final data = DemoDataset.instance;
-    final repo = MockRecommendationRepository(
-      data,
-      MockJudgmentRepository(data),
-    );
-    final rec = await repo.get('rec-demo-1');
-    expect(rec.ranked, isNotEmpty);
-    expect(rec.insufficient, isNotEmpty);
-    for (var i = 1; i < rec.ranked.length; i++) {
-      expect(rec.ranked[i - 1].score >= rec.ranked[i].score, isTrue);
-    }
-    // ignore: avoid_print
-    print(
-      [
-        for (final r in rec.ranked)
-          '${r.advocate.displayName}: ${r.score.toStringAsFixed(1)} '
-              'cmp=${r.metrics.comparableIds.length} '
-              'fav=${r.metrics.favorableIds.length}/${r.metrics.eligibleIds.length} '
-              'bench=${r.metrics.judgeIds.length} ${r.reliability.name}',
-        '-- insufficient:',
-        for (final r in rec.insufficient)
-          '${r.advocate.displayName}: cmp=${r.metrics.comparableIds.length} '
-              'verified=${r.metrics.verifiedAppearanceIds.length} '
-              'eligible=${r.metrics.eligibleIds.length}',
-      ].join('\n'),
-    );
   });
 }

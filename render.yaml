@@ -5,7 +5,7 @@ services:
     name: brieflee-knowledge
     runtime: docker
     dockerfilePath: server/Dockerfile
-    plan: starter
+    plan: free
     healthCheckPath: /v1/health
     envVars:
       - key: ANTHROPIC_API_KEY

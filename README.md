@@ -1,15 +1,13 @@
-# Brieflee: Flutter app (phase 1)
+# Brieflee
 
-Evidence-based legal counsel discovery for web, Android and iOS. This is the
-"next implementation milestone" from the product blueprint: complete
-navigation and UI, typed domain models, repository interfaces, REST API
-contracts and clearly labelled demonstration data.
+Evidence-based legal counsel discovery for web, Android and iOS. Brieflee
+answers "who has won matters like mine?" from real Delhi High Court
+decisions: advocates, judges, outcomes and the judgments behind every number.
 
-> **Two kinds of data.** **Ask** (`/ask`) and the **Records** pages run on
-> **real** Delhi High Court records (see below). The original matter flow
-> (New matter → Analysis → Results → Profile/Compare) still runs on clearly
-> labelled **fictional** demo data ("Advocate A", `DEMO-DHC-…`). A teal
-> banner marks real pages, a gold banner marks demo pages.
+> **All data is real.** Every advocate, judge and case comes from the court's
+> published decisions (eCourts via AWS Open Data, CC BY 4.0). The first,
+> fictional-data prototype screens were retired; its scoring and
+> deduplication logic remains in `lib/core/` with tests.
 
 ## Real data and the knowledge layer (phase 2 pilot)
 
@@ -94,27 +92,19 @@ top navigation bar on tablet/desktop and a bottom bar on phones.
 - Every number (relevant cases, favorable, before bench…) opens the exact
   cases behind it.
 
-## Screens (blueprint section 8)
+## Screens
 
-| Screen | Route |
-| --- | --- |
-| Landing / Home | `/` |
-| Login / Account | `/login` |
-| New Matter (describe, upload, case number) | `/matters/new` |
-| AI Case Analysis + bench intelligence | `/matters/:id/analysis` |
-| Court Explorer | `/courts`, `/courts/:id` |
-| Judge Explorer (directory, roster, cause list, notices, history) | `/judges?court=dhc` |
-| Search Results (3-panel) | `/recommendations/:id` |
-| Advocate Profile | `/advocates/:id?rec=` |
-| Advocate Comparison | `/compare?rec=&ids=a1,a2` |
-| Judgment Details | `/judgments/:id` |
-| Saved Matters | `/saved` |
-| Alerts | `/alerts` |
-| Settings (privacy, notifications, deletion) | `/settings` |
-| Admin Dashboard (sign in first) | `/admin` |
-
-Try: Home → "See a sample result", or New matter → Case no. →
-`CS(COMM) 512/2026` (a demo listing whose bench changed).
+| Screen | Route | What it does |
+| --- | --- | --- |
+| Home | `/` | Live search: suggestions update on every keystroke (subjects, advocates, judges, cases by number or party); top advocates by decided record |
+| Ask | `/ask?q=` | Full answer: similar decisions, how they ended, counsel who won; results refresh while you type; upload a judgment (`/ask?upload=1`) |
+| Advocates | `/counsel?subject=&q=` | Every advocate named in the records, filter by name and subject, sort by decided record, wins, appearances or recency |
+| Advocate | `/records/counsel/:id` | Appearances, sides, wins and losses with the judgments, subjects, benches |
+| Judges | `/judges`, `/records/judges/:id` | Judges with decision counts and outcome splits |
+| Court | `/courts` | Coverage and subjects |
+| Case | `/records/cases/:id` | One decision, its outcome sentence, counsel, PDF |
+| Saved | `/saved` | Advocates and searches bookmarked on this device |
+| Settings | `/settings` | Privacy and sources |
 
 ## Structure
 
@@ -139,10 +129,8 @@ lib/
 └── shared/              constants, utilities
 ```
 
-Features: home, authentication, case_intake, document_upload,
-case_analysis, court_explorer, judge_roster, advocate_search,
-advocate_profile, advocate_comparison, judgment_viewer, saved_matters,
-notifications, settings, admin.
+Features: home, ask (search, upload, records pages), directory (advocates,
+judges, court, live search), saved, settings.
 
 ## What is real logic vs. mock
 
@@ -161,19 +149,25 @@ Real, tested logic that will carry into production:
   official record wins on conflict.
 - **Search hits vs. appearances vs. eligible judgments** are separate metrics.
 
-Mock in this build: repositories (in-memory, simulated latency and job
-polling), case analysis (a keyword matcher labelled "not AI"), roster and
-cause-list data, authentication, notifications delivery.
+## AI document analysis (optional)
+
+`server/` also exposes `POST /v1/analyze`. The website sends an uploaded
+document's text; the server splits it into overlapping passages, asks Claude
+(`claude-opus-5-5`, structured JSON output) for the issues the matter turns
+on, the statutes, the client's likely side and a search query per issue, then
+searches the knowledge layer for each issue and fuses the results
+(reciprocal-rank fusion) before ranking counsel with the same rules as Ask.
+The document is processed in memory and not stored. Without
+`ANTHROPIC_API_KEY` it falls back to keyword matching per passage.
+
+The API key stays on the server; the website never sees it.
 
 ## Next steps
 
-1. FastAPI backend implementing `docs/api_contracts.md`; add `Api*Repository`
-   classes beside the mock ones and switch providers on `AppConfig.dataMode`.
-2. Vakilaj and Indian Kanoon adapters once access, terms and reuse
-   permissions are confirmed; official Delhi High Court roster and cause-list
-   monitoring.
-3. LLM case analysis with structured outputs, redaction and evidence checks.
-4. Firebase Auth / OIDC, FCM + email alerts, encrypted document storage.
+1. More courts and subjects through the same pipeline (Punjab and Haryana is
+   prepared and paused).
+2. Read more judgments in full so more outcomes are known.
+3. Accounts and alerts once there is a backend for them.
 
 ## Deploying
 
@@ -187,8 +181,10 @@ it, and uploaded judgments are read in the visitor's browser.
 **Knowledge service (optional).** For full-text retrieval and AI summaries, deploy
 `server/` (Docker; `render.yaml` is a Render blueprint). The knowledge database ships
 gzipped and split in `knowledge/` and is unpacked at start-up (see
-`knowledge/README.md`); set `ANTHROPIC_API_KEY` for summaries. Then add a repository
-variable `BRIEFLEE_KNOWLEDGE_URL` with the service URL so the website uses it.
+`knowledge/README.md`); set `ANTHROPIC_API_KEY` for AI document analysis and
+summaries. Then add a repository variable `BRIEFLEE_KNOWLEDGE_URL` (Settings → Secrets
+and variables → Actions → Variables) with the service URL, and re-run the Pages
+workflow, so the website uses it.
 
 **Rebuilding the data.** `tool/build_dhc_snapshot.py` builds the case snapshot from
 the AWS Open Data parquet files; `tool/knowledge/harvest_texts.py` then

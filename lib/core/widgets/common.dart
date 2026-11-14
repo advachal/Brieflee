@@ -12,8 +12,6 @@ class DataNoticeBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final real = location.startsWith('/ask') || location.startsWith('/records');
-    if (!real) return const DemoDataBanner();
     return Semantics(
       label: 'Real records notice',
       child: Container(

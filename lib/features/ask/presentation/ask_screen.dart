@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -12,6 +14,7 @@ import '../../../core/widgets/status_badges.dart';
 import '../application/ask_providers.dart';
 import '../data/document_text.dart';
 import 'record_widgets.dart';
+import '../../saved/application/saved_store.dart';
 
 const _examples = [
   'Challenging an arbitral award under section 34 for patent illegality',
@@ -25,8 +28,11 @@ const _examples = [
 /// Ask: type a question in plain English, get similar real decisions and the
 /// counsel who won them, all computed live from the knowledge layer.
 class AskScreen extends ConsumerStatefulWidget {
-  const AskScreen({super.key, this.initialQuery});
+  const AskScreen({super.key, this.initialQuery, this.openUpload = false});
   final String? initialQuery;
+
+  /// Opened from "Upload a judgment": lead with the upload action.
+  final bool openUpload;
 
   @override
   ConsumerState<AskScreen> createState() => _AskScreenState();
@@ -54,10 +60,28 @@ class _AskScreenState extends ConsumerState<AskScreen> {
     }
   }
 
+  Timer? _debounce;
+
   @override
   void dispose() {
+    _debounce?.cancel();
     _c.dispose();
     super.dispose();
+  }
+
+  /// Real-time search: results follow the text as it is typed.
+  void _typed(String v) {
+    _debounce?.cancel();
+    _debounce = Timer(const Duration(milliseconds: 350), () {
+      final q = v.trim();
+      if (!mounted || q == _query) return;
+      if (q.isEmpty || q.length >= 3) {
+        setState(() {
+          _query = q;
+          _doc = null;
+        });
+      }
+    });
   }
 
   void _submit([String? text]) {
@@ -136,7 +160,11 @@ class _AskScreenState extends ConsumerState<AskScreen> {
           style: t.bodyLarge?.copyWith(color: AppColors.muted),
         ),
         const SizedBox(height: 24),
-        _QueryBox(controller: _c, onSubmit: _submit),
+        if (widget.openUpload && _doc == null && _query.isEmpty) ...[
+          _UploadLead(reading: _reading, onUpload: _upload),
+          const SizedBox(height: 20),
+        ],
+        _QueryBox(controller: _c, onSubmit: _submit, onChanged: _typed),
         const SizedBox(height: 14),
         Wrap(
           spacing: 16,
@@ -216,6 +244,7 @@ class _AskScreenState extends ConsumerState<AskScreen> {
                     onClear: () => setState(() => _doc = null),
                   ),
                   const SizedBox(height: 16),
+                  _ServiceAnalysis(text: _doc!.text, engine: engine),
                   _Results(
                     engine: engine,
                     query: q,
@@ -225,9 +254,26 @@ class _AskScreenState extends ConsumerState<AskScreen> {
                 ],
               );
             }
-            return _query.isEmpty
-                ? _Coverage(snapshot: engine.snapshot)
-                : _Results(engine: engine, query: _query, side: _side);
+            if (_query.isEmpty) return _Coverage(snapshot: engine.snapshot);
+            final saved = ref.watch(savedProvider).searches.contains(_query);
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton.icon(
+                    onPressed: () =>
+                        ref.read(savedProvider.notifier).toggleSearch(_query),
+                    icon: Icon(
+                      saved ? Icons.bookmark : Icons.bookmark_border,
+                      size: 18,
+                    ),
+                    label: Text(saved ? 'Saved' : 'Save search'),
+                  ),
+                ),
+                _Results(engine: engine, query: _query, side: _side),
+              ],
+            );
           },
         ),
       ],
@@ -235,10 +281,61 @@ class _AskScreenState extends ConsumerState<AskScreen> {
   }
 }
 
+class _UploadLead extends StatelessWidget {
+  const _UploadLead({required this.reading, required this.onUpload});
+  final bool reading;
+  final VoidCallback onUpload;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = Theme.of(context).textTheme;
+    return InkWell(
+      onTap: reading ? null : onUpload,
+      borderRadius: BorderRadius.circular(18),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 24),
+        decoration: BoxDecoration(
+          color: AppColors.tealSoft,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: AppColors.teal.withValues(alpha: 0.4)),
+        ),
+        child: Column(
+          children: [
+            Icon(
+              reading ? Icons.hourglass_top : Icons.upload_file,
+              size: 36,
+              color: AppColors.teal,
+            ),
+            const SizedBox(height: 10),
+            Text(
+              reading
+                  ? 'Reading the document…'
+                  : 'Choose a judgment or pleading (PDF or text)',
+              textAlign: TextAlign.center,
+              style: t.titleMedium?.copyWith(color: AppColors.navy),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              'It is read in your browser and never uploaded. We match it against the knowledge layer and show who won similar matters.',
+              textAlign: TextAlign.center,
+              style: t.bodySmall?.copyWith(color: AppColors.muted),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class _QueryBox extends StatelessWidget {
-  const _QueryBox({required this.controller, required this.onSubmit});
+  const _QueryBox({
+    required this.controller,
+    required this.onSubmit,
+    required this.onChanged,
+  });
   final TextEditingController controller;
   final void Function([String?]) onSubmit;
+  final ValueChanged<String> onChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -265,6 +362,7 @@ class _QueryBox extends StatelessWidget {
               minLines: 1,
               maxLines: 5,
               textInputAction: TextInputAction.search,
+              onChanged: onChanged,
               onSubmitted: (_) => onSubmit(),
               style: const TextStyle(fontSize: 18),
               decoration: const InputDecoration(
@@ -841,6 +939,154 @@ class _DecisionsSectionState extends State<_DecisionsSection> {
             ),
           ),
       ],
+    );
+  }
+}
+
+/// Issues found in an uploaded document by the knowledge service (Claude),
+/// each linked to similar decisions. Shown only when the service is connected.
+class _ServiceAnalysis extends ConsumerWidget {
+  const _ServiceAnalysis({required this.text, required this.engine});
+  final String text;
+  final AskEngine engine;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    if (!ref.watch(knowledgeServiceProvider).configured) {
+      return const SizedBox.shrink();
+    }
+    final t = Theme.of(context).textTheme;
+    final a = ref.watch(documentAnalysisProvider(text));
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 20),
+      child: SectionCard(
+        title: 'AI reading of your document',
+        subtitle: 'Claude split the document into passages, found the issues it turns on, and searched the knowledge layer for each one.',
+        child: a.when(
+          loading: () => const Padding(
+            padding: EdgeInsets.symmetric(vertical: 12),
+            child: LinearProgressIndicator(minHeight: 2),
+          ),
+          error: (_, _) => const Text('The analysis service did not respond.'),
+          data: (m) {
+            if (m == null) {
+              return Text(
+                'The analysis service is not reachable right now; the on-device results below still apply.',
+                style: t.bodyMedium?.copyWith(color: AppColors.muted),
+              );
+            }
+            final issues = (m['issues'] as List).cast<Map<String, dynamic>>();
+            final counsel = (m['counsel'] as List).cast<Map<String, dynamic>>();
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (m['summary'] != null) ...[
+                  Text(m['summary'] as String, style: t.bodyLarge),
+                  const SizedBox(height: 6),
+                  Text(
+                    [
+                      '${m['chunks']} passages read',
+                      if (m['client_side'] == 'p')
+                        'you appear to act for the petitioner',
+                      if (m['client_side'] == 'r')
+                        'you appear to act for the respondent',
+                      '${m['similar_decisions']} similar decisions',
+                    ].join(' · '),
+                    style: t.bodySmall?.copyWith(color: AppColors.muted),
+                  ),
+                  const SizedBox(height: 16),
+                ],
+                for (final (i, issue) in issues.indexed) ...[
+                  Text(
+                    '${i + 1}. ${issue['title']}',
+                    style: t.titleMedium?.copyWith(color: AppColors.navy),
+                  ),
+                  if ((issue['statutes'] as List).isNotEmpty)
+                    Text(
+                      (issue['statutes'] as List).join('; '),
+                      style: t.bodySmall?.copyWith(color: AppColors.muted),
+                    ),
+                  const SizedBox(height: 4),
+                  for (final c
+                      in (issue['cases'] as List)
+                          .cast<Map<String, dynamic>>()
+                          .take(3))
+                    _ServiceCaseLink(card: c, engine: engine),
+                  const SizedBox(height: 12),
+                ],
+                if (counsel.isNotEmpty) ...[
+                  const Divider(),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Counsel who won these matters',
+                    style: t.titleMedium?.copyWith(color: AppColors.navy),
+                  ),
+                  const SizedBox(height: 6),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      for (final c in counsel.take(8))
+                        ActionChip(
+                          avatar: const Icon(Icons.person_outline, size: 18),
+                          label: Text(
+                            '${c['name']} · ${c['favourable']} won, ${c['unfavourable']} lost',
+                          ),
+                          onPressed: () => context.go(
+                            Routes.counsel(q: c['name'] as String),
+                          ),
+                        ),
+                    ],
+                  ),
+                ],
+                if (m['answer'] != null) ...[
+                  const SizedBox(height: 16),
+                  Text(m['answer'] as String, style: t.bodyMedium),
+                ],
+              ],
+            );
+          },
+        ),
+      ),
+    );
+  }
+}
+
+class _ServiceCaseLink extends StatelessWidget {
+  const _ServiceCaseLink({required this.card, required this.engine});
+  final Map<String, dynamic> card;
+  final AskEngine engine;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = Theme.of(context).textTheme;
+    final id = card['id'] as String;
+    final local = engine.snapshot.byId(id);
+    return InkWell(
+      onTap: local == null ? null : () => context.go(Routes.record(id)),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 4),
+        child: Row(
+          children: [
+            const Icon(
+              Icons.description_outlined,
+              size: 16,
+              color: AppColors.teal,
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                '${card['title']} · ${card['case_number']} · ${card['decision_date']} · ${card['outcome']}',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: t.bodyMedium?.copyWith(
+                  color: local == null ? AppColors.muted : AppColors.teal,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

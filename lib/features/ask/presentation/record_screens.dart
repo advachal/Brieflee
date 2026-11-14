@@ -11,6 +11,7 @@ import '../../../core/widgets/common.dart';
 import '../../../core/widgets/status_badges.dart';
 import '../application/ask_providers.dart';
 import 'record_widgets.dart';
+import '../../saved/application/saved_store.dart';
 
 Widget _withSnapshot(
   WidgetRef ref,
@@ -321,7 +322,35 @@ class RecordCounselScreen extends ConsumerWidget {
             'Counsel · ${records.isEmpty ? s.courtNames : s.courtOf(records.first).court}',
           ),
           const SizedBox(height: 12),
-          Text(name, style: t.headlineLarge?.copyWith(color: AppColors.navy)),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Text(
+                  name,
+                  style: t.headlineLarge?.copyWith(color: AppColors.navy),
+                ),
+              ),
+              Consumer(
+                builder: (context, ref, _) {
+                  final saved = ref
+                      .watch(savedProvider)
+                      .counsel
+                      .containsKey(counselId);
+                  return OutlinedButton.icon(
+                    onPressed: () => ref
+                        .read(savedProvider.notifier)
+                        .toggleCounsel(counselId, name),
+                    icon: Icon(
+                      saved ? Icons.bookmark : Icons.bookmark_border,
+                      size: 18,
+                    ),
+                    label: Text(saved ? 'Saved' : 'Save'),
+                  );
+                },
+              ),
+            ],
+          ),
           const SizedBox(height: 8),
           Text(
             'Everything below is drawn from decisions in which this name appears as counsel, ${s.yearRange}. '

@@ -5,14 +5,18 @@
     KNOWLEDGE_DB=build/knowledge/knowledge.db uvicorn app:app --app-dir server --port 8080
 
 Optional: set ANTHROPIC_API_KEY to add a grounded, cited narrative answer.
-Point the Flutter app at it with --dart-define=BRIEFLEE_API_BASE_URL=http://localhost:8080
+Point the Flutter app at it with --dart-define=BRIEFLEE_KNOWLEDGE_URL=http://localhost:8080
+
+POST /v1/ask      a question in plain words
+POST /v1/analyze  an uploaded document's text: chunked, issues found (Claude), linked to similar decisions
 """
 import os
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
+import analyze as analysis
 import generate
 from rag import KnowledgeLayer
 
@@ -20,6 +24,11 @@ DB = os.environ.get("KNOWLEDGE_DB", os.path.join(os.path.dirname(__file__), ".."
 kl = KnowledgeLayer(DB)
 app = FastAPI(title="Brieflee knowledge service", version="0.1")
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["GET", "POST"], allow_headers=["*"])
+
+
+class AnalyzeRequest(BaseModel):
+    text: str
+    side: str | None = None  # "p" or "r"; inferred from the document when omitted
 
 
 class AskRequest(BaseModel):
@@ -31,7 +40,19 @@ class AskRequest(BaseModel):
 @app.get("/v1/health")
 def health():
     n = kl.db.execute("SELECT count(*) FROM records").fetchone()[0]
-    return {"ok": True, "records": n, "generation": generate.available(), "source": kl.source}
+    return {"ok": True, "records": n, "generation": generate.available(),
+            "document_analysis": "claude" if generate.available() else "keywords", "source": kl.source}
+
+
+@app.post("/v1/analyze")
+def analyze(req: AnalyzeRequest):
+    """Chunk an uploaded document, find its issues and link them to the knowledge layer."""
+    if len(req.text.strip()) < 200:
+        raise HTTPException(422, "Not enough text in the document.")
+    try:
+        return analysis.analyze(kl, req.text, req.side)
+    except ValueError as e:
+        raise HTTPException(413, str(e))
 
 
 @app.post("/v1/ask")

@@ -1,9 +1,13 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../../../app/router.dart';
 import '../../../app/theme/app_colors.dart';
 import '../../../shared/constants/breakpoints.dart';
+import '../../ask/application/ask_providers.dart';
+import '../../ask/presentation/record_widgets.dart';
+import '../../directory/presentation/live_search.dart';
 
 /// Landing page. Editorial layout: a large centred statement, one search
 /// field, then full-width sections separated by whitespace and hairlines.
@@ -15,18 +19,7 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  final _query = TextEditingController();
-
-  @override
-  void dispose() {
-    _query.dispose();
-    super.dispose();
-  }
-
-  void _start() {
-    final q = _query.text.trim();
-    context.go(Routes.ask(q.isEmpty ? null : q));
-  }
+  void _ask(String q) => context.go(Routes.ask(q));
 
   @override
   Widget build(BuildContext context) {
@@ -44,9 +37,17 @@ class _HomeScreenState extends State<HomeScreen> {
             pad,
             compact ? 56 : 112,
           ),
-          child: _Hero(controller: _query, onSubmit: _start, compact: compact),
+          child: _Hero(onAsk: _ask, compact: compact),
         ),
         _Section(
+          padding: EdgeInsets.symmetric(
+            horizontal: pad,
+            vertical: compact ? 56 : 96,
+          ),
+          child: const _TopAdvocates(),
+        ),
+        _Section(
+          color: AppColors.surface,
           padding: EdgeInsets.symmetric(
             horizontal: pad,
             vertical: compact ? 56 : 104,
@@ -119,13 +120,8 @@ class _Eyebrow extends StatelessWidget {
 }
 
 class _Hero extends StatelessWidget {
-  const _Hero({
-    required this.controller,
-    required this.onSubmit,
-    required this.compact,
-  });
-  final TextEditingController controller;
-  final VoidCallback onSubmit;
+  const _Hero({required this.onAsk, required this.compact});
+  final void Function(String) onAsk;
   final bool compact;
 
   @override
@@ -149,9 +145,9 @@ class _Hero extends StatelessWidget {
         ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 640),
           child: Text(
-            'Ask in plain English, or upload a judgment. We search 109,000 real Delhi High Court '
-            'decisions, read the outcomes, and show which counsel won similar '
-            'matters, with every judgment linked.',
+            'Start typing: a dispute, an advocate, a judge or a case number. Results come '
+            'live from 109,341 real Delhi High Court decisions, and every number opens '
+            'the judgments behind it.',
             textAlign: TextAlign.center,
             style: t.bodyLarge?.copyWith(
               color: AppColors.muted,
@@ -162,45 +158,11 @@ class _Hero extends StatelessWidget {
         SizedBox(height: compact ? 32 : 48),
         ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 720),
-          child: Container(
-            decoration: BoxDecoration(
-              color: AppColors.surface,
-              borderRadius: BorderRadius.circular(40),
-              border: Border.all(color: AppColors.border),
-              boxShadow: [
-                BoxShadow(
-                  color: AppColors.navy.withValues(alpha: 0.08),
-                  blurRadius: 32,
-                  offset: const Offset(0, 12),
-                ),
-              ],
-            ),
-            padding: const EdgeInsets.fromLTRB(22, 6, 6, 6),
-            child: Row(
-              children: [
-                const Icon(Icons.search, color: AppColors.muted),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: TextField(
-                    controller: controller,
-                    onSubmitted: (_) => onSubmit(),
-                    style: const TextStyle(fontSize: 17),
-                    decoration: const InputDecoration(
-                      hintText:
-                          'e.g. Challenging an arbitral award under section 34',
-                      border: InputBorder.none,
-                      enabledBorder: InputBorder.none,
-                      focusedBorder: InputBorder.none,
-                      filled: false,
-                    ),
-                  ),
-                ),
-                FilledButton(
-                  onPressed: onSubmit,
-                  child: Text(compact ? 'Ask' : 'Ask'),
-                ),
-              ],
-            ),
+          child: LiveSearchField(
+            onAsk: onAsk,
+            hint: compact
+                ? 'Matter, advocate, judge or case no.'
+                : 'e.g. section 34 arbitral award, or an advocate\'s name',
           ),
         ),
         const SizedBox(height: 28),
@@ -209,23 +171,112 @@ class _Hero extends StatelessWidget {
           spacing: 28,
           runSpacing: 8,
           children: [
+            _ChevronLink('Upload a judgment', () => context.go(Routes.upload)),
             _ChevronLink(
-              'Describe a matter in detail',
-              () => context.go(Routes.newMatter),
+              'Browse advocates',
+              () => context.go(Routes.counsel()),
             ),
-            _ChevronLink(
-              'Upload a document',
-              () => context.go('${Routes.newMatter}?mode=upload'),
-            ),
-            _ChevronLink(
-              'Enter a case number',
-              () => context.go('${Routes.newMatter}?mode=caseNumber'),
-            ),
-            _ChevronLink(
-              'See the demo ranking',
-              () => context.go(Routes.results('rec-demo-1')),
-            ),
+            _ChevronLink('Browse judges', () => context.go(Routes.judges())),
           ],
+        ),
+      ],
+    );
+  }
+}
+
+/// Advocates with the best decided record, computed live from the records.
+class _TopAdvocates extends ConsumerWidget {
+  const _TopAdvocates();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final t = Theme.of(context).textTheme;
+    final compact = MediaQuery.sizeOf(context).width < Breakpoints.compact;
+    final dir = ref.watch(directoryProvider);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const _Eyebrow('From the records', color: AppColors.teal),
+        const SizedBox(height: 16),
+        Text(
+          'Advocates with the strongest decided record',
+          style: (compact ? t.headlineMedium : t.displaySmall)?.copyWith(
+            color: AppColors.navy,
+          ),
+        ),
+        const SizedBox(height: 12),
+        Text(
+          'Commercial, arbitration and IP judgments read in full, with at least five clear wins or losses. '
+          'Rates are smoothed toward 50% so a short record cannot top the list. Government counsel are left out.',
+          style: t.bodyMedium?.copyWith(color: AppColors.muted),
+        ),
+        const SizedBox(height: 24),
+        dir.when(
+          loading: () => const LinearProgressIndicator(minHeight: 2),
+          error: (e, _) => Text('$e'),
+          data: (d) {
+            final top = d.topCounsel(minDecided: 5).take(8).toList();
+            return Column(
+              children: [
+                for (var i = 0; i < top.length; i++)
+                  InkWell(
+                    onTap: () => context.go(Routes.recordCounsel(top[i].id)),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      decoration: const BoxDecoration(
+                        border: Border(
+                          top: BorderSide(color: AppColors.border),
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          SizedBox(
+                            width: 44,
+                            child: Text(
+                              '${i + 1}',
+                              style: t.titleLarge?.copyWith(
+                                color: AppColors.gold,
+                              ),
+                            ),
+                          ),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  top[i].name,
+                                  style: t.titleMedium?.copyWith(
+                                    color: AppColors.navy,
+                                  ),
+                                ),
+                                Text(
+                                  counselSummaryLine(top[i]),
+                                  style: t.bodySmall?.copyWith(
+                                    color: AppColors.muted,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const Icon(
+                            Icons.chevron_right,
+                            color: AppColors.muted,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                const SizedBox(height: 16),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: _ChevronLink(
+                    'See all ${fmtInt(d.counsel.where((c) => c.appearances > 0).length)} advocates',
+                    () => context.go(Routes.counsel()),
+                  ),
+                ),
+              ],
+            );
+          },
         ),
       ],
     );
@@ -260,20 +311,20 @@ class _HowItWorks extends StatelessWidget {
 
   static const _steps = [
     (
-      'Tell us about the matter',
-      'Plain language, a document or a case number. You review and edit everything we extract.',
+      'Describe the matter',
+      'Type it in plain language, or upload a judgment. The document is read in your browser and never leaves it.',
     ),
     (
-      'We check the court and bench',
-      'Official rosters and cause lists, always shown with their source and freshness.',
+      'We find similar decisions',
+      'Your words are matched against the knowledge layer: statutes, key terms and parties from 13,241 judgments read in full.',
     ),
     (
-      'We find comparable judgments',
-      'Vakilaj first, Indian Kanoon as fallback, official records to verify. Duplicates count once.',
+      'We read how they ended',
+      'Only clear wins and losses count. Settlements, withdrawals, interim orders and arbitrator appointments do not.',
     ),
     (
-      'You see ranked, explained counsel',
-      'Every number opens the cases behind it. Where evidence is thin, we say so.',
+      'You see the counsel who won',
+      'Ranked by their decided record in those matters. Every number opens the judgments behind it.',
     ),
   ];
 
@@ -452,18 +503,18 @@ class _Status extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = Theme.of(context).textTheme;
     const rows = [
-      ('Real-data court', 'Delhi High Court'),
+      ('Court', 'Delhi High Court, decisions from 2023 to 2025'),
+      ('Decisions indexed', '109,341 orders and judgments'),
       (
-        'Initial categories',
-        'Intellectual property, commercial disputes, interim injunctions',
+        'Read in full',
+        '13,241 commercial, arbitration and IP judgments, with outcomes',
       ),
+      ('Source', 'eCourts judgments portal via AWS Open Data (CC BY 4.0)'),
+      ('Coming next', 'More courts and subjects, using the same pipeline'),
       (
-        'Vakilaj (primary source)',
-        'Not connected: access and permissions pending',
+        'Limits',
+        'Counsel names are parsed from judgments and matched by spelling; verify before relying on them',
       ),
-      ('Indian Kanoon (secondary source)', 'Not connected: permission pending'),
-      ('Official court records', 'Not connected in this prototype'),
-      ('Data you will see', 'Fictional and illustrative only'),
     ];
     return LayoutBuilder(
       builder: (context, c) {
@@ -471,19 +522,16 @@ class _Status extends StatelessWidget {
         final intro = Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const _Eyebrow('Prototype status', color: AppColors.teal),
+            const _Eyebrow('Coverage', color: AppColors.teal),
             const SizedBox(height: 16),
             Text(
-              'Built in the open about what is live and what is not.',
+              'What the answers are built on.',
               style: (narrow ? t.headlineMedium : t.displaySmall)?.copyWith(
                 color: AppColors.navy,
               ),
             ),
             const SizedBox(height: 20),
-            _ChevronLink(
-              'Explore supported courts',
-              () => context.go(Routes.courts),
-            ),
+            _ChevronLink('Explore the court', () => context.go(Routes.courts)),
           ],
         );
         final table = Column(
