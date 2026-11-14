@@ -23,10 +23,16 @@ jobs:
             sleep 10
           done
           python3 -c "import json;d=json.load(open('health.json'));print({k:d.get(k) for k in ('ok','records','generation','document_analysis')})"
+      - name: Ask a question
+        run: |
+          curl -sS -m 240 -H 'content-type: application/json' \
+            --data '{"question":"set aside arbitral award under section 34"}' "$URL/v1/ask" \
+            -o ask.json -w "HTTP %{http_code} in %{time_total}s\n"
+          python3 -c "import json;j=json.load(open('ask.json'));print(j['similar_decisions'],[c['name'] for c in j['counsel'][:5]])" || head -c 500 ask.json
       - name: Analyze the sample judgment
         run: |
           python3 -c "import json;print(json.dumps({'text':open('test/fixtures/sample_judgment.txt').read()}))" > body.json
-          curl -sS -m 240 -H 'content-type: application/json' --data @body.json "$URL/v1/analyze" -o out.json -w "HTTP %{http_code}\n"
+          curl -sS -m 240 -H 'content-type: application/json' --data @body.json "$URL/v1/analyze" -o out.json -w "HTTP %{http_code} in %{time_total}s\n"
           python3 .github/scripts/print_analysis.py out.json
       - name: CORS allows the website
         run: |
