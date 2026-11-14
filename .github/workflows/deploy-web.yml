@@ -30,7 +30,7 @@ jobs:
         run: |
           flutter build web --release --no-web-resources-cdn \
             --base-href "/${{ github.event.repository.name }}/" \
-            --dart-define=BRIEFLEE_KNOWLEDGE_URL=${{ vars.BRIEFLEE_KNOWLEDGE_URL }}
+            --dart-define=BRIEFLEE_KNOWLEDGE_URL=${{ vars.BRIEFLEE_KNOWLEDGE_URL || 'https://brieflee-knowledge-to1s.onrender.com' }}
           cp build/web/index.html build/web/404.html
       - uses: actions/upload-pages-artifact@v3
         with:
