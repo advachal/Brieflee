@@ -34,6 +34,18 @@ abstract final class AppConfig {
     defaultValue: '',
   );
 
+  /// The service the app talks to. When the website is opened from the
+  /// knowledge service itself on this computer (localhost, as the
+  /// run-on-a-Mac script does), that local service is used instead.
+  static String get resolvedKnowledgeServiceUrl {
+    final here = Uri.base;
+    if ((here.scheme == 'http' || here.scheme == 'https') &&
+        (here.host == 'localhost' || here.host == '127.0.0.1')) {
+      return here.origin;
+    }
+    return knowledgeServiceUrl;
+  }
+
   static const publicRecordsNotice =
       'Real High Court records (eCourts via AWS Open Data, CC BY 4.0). '
       'Counsel and outcomes are read from the judgments and may be incomplete; verify before relying on them.';

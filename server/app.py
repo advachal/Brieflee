@@ -98,10 +98,30 @@ def ask(req: AskRequest):
         "counsel": ranked,
         "counsel_insufficient": [c for c in counsel if not c["sufficient_evidence"]][:15],
         "method": {
-            "retrieval": "BM25 (SQLite FTS5) over text of official Delhi High Court judgments",
+            "retrieval": f"BM25 (SQLite FTS5) over the text of {kl.source.get('name') or 'official Delhi High Court judgments'}",
             "outcomes": "rule-based reading of the operative sentence; settled, withdrawn, interim and unclear orders excluded",
             "smoothing": f"favourable rate smoothed toward 50% with prior strength {10}",
             "evidence_threshold": "at least 3 outcome-eligible similar decisions",
         },
         "attribution": kl.source.get("attribution"),
     }
+
+
+# Optional: serve the website from this service (the run-on-a-Mac script sets
+# WEB_DIR to the built web app). The app is built for the path /Brieflee/.
+WEB_DIR = os.environ.get("WEB_DIR")
+if WEB_DIR and os.path.isdir(WEB_DIR):
+    from fastapi.responses import FileResponse, RedirectResponse
+
+    @app.get("/", include_in_schema=False)
+    def web_root():
+        return RedirectResponse("/Brieflee/")
+
+    @app.get("/Brieflee/{path:path}", include_in_schema=False)
+    def web(path: str = ""):
+        root = os.path.realpath(WEB_DIR)
+        f = os.path.realpath(os.path.join(root, path))
+        if f.startswith(root + os.sep) and os.path.isfile(f):
+            return FileResponse(f)
+        return FileResponse(os.path.join(root, "index.html"))  # app routes
+

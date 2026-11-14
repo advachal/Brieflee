@@ -12,7 +12,7 @@ import '../../../core/config/app_config.dart';
 class KnowledgeServiceClient {
   KnowledgeServiceClient({http.Client? client, String? baseUrl})
     : _client = client ?? http.Client(),
-      _base = baseUrl ?? AppConfig.knowledgeServiceUrl;
+      _base = baseUrl ?? AppConfig.resolvedKnowledgeServiceUrl;
 
   final http.Client _client;
   final String _base;

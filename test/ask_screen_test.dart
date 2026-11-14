@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'dart:io';
-import 'dart:ui' show Size;
 
 import 'package:brieflee/app/app.dart';
 import 'package:brieflee/app/router.dart';

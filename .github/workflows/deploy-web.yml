@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
   pages: write
   id-token: write
 
@@ -32,6 +32,15 @@ jobs:
             --base-href "/${{ github.event.repository.name }}/" \
             --dart-define=BRIEFLEE_KNOWLEDGE_URL=${{ vars.BRIEFLEE_KNOWLEDGE_URL || 'https://brieflee-knowledge-to1s.onrender.com' }}
           cp build/web/index.html build/web/404.html
+      - name: Attach the built site for running on a computer (release web-latest)
+        if: github.ref == 'refs/heads/main'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          (cd build && zip -qr ../brieflee-web.zip web)
+          gh release view web-latest >/dev/null 2>&1 || gh release create web-latest --title "Website build" \
+            --notes "The built website, for tool/run_on_mac.sh. Updated on every push to main."
+          gh release upload web-latest brieflee-web.zip --clobber
       - uses: actions/upload-pages-artifact@v3
         with:
           path: build/web
