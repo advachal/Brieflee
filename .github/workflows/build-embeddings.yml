@@ -9,8 +9,8 @@ on:
   workflow_dispatch:
     inputs:
       shards:
-        description: "Parallel jobs"
-        default: "24"
+        description: "Parallel jobs (19 leaves one free runner for other workflows)"
+        default: "19"
 
 permissions:
   contents: write

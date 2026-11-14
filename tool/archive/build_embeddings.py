@@ -17,16 +17,22 @@ import numpy as np
 
 MODEL = "BAAI/bge-small-en-v1.5"
 DIM = 384
-MAX_CHARS = 1500
+# CPU embedding costs about 0.1 s per passage on a free runner, so only the
+# opening passages of each judgment (parties, facts, the questions raised)
+# are embedded, each cut to about 220 tokens.
+MAX_CHARS = 900
+MAX_INDEX = 4
 
 
 def embed_shard(db: str, out: str, shard: int, shards: int, batch: int) -> None:
     from fastembed import TextEmbedding
     conn = sqlite3.connect(f"file:{db}?mode=ro", uri=True)
     lo, hi = conn.execute("SELECT min(rowid), max(rowid) FROM chunks").fetchone()
+    # Equal shares of rowids hold roughly equal numbers of opening passages.
     size = (hi - lo + 1 + shards - 1) // shards
     a, b = lo + shard * size, min(hi, lo + (shard + 1) * size - 1)
-    rows = conn.execute("SELECT rowid, text FROM chunks WHERE rowid BETWEEN ? AND ? ORDER BY rowid", (a, b)).fetchall()
+    rows = conn.execute("SELECT rowid, text FROM chunks WHERE rowid BETWEEN ? AND ? AND chunk_index < ? ORDER BY rowid",
+                        (a, b, MAX_INDEX)).fetchall()
     print(f"shard {shard}/{shards}: rowids {a}..{b}, {len(rows)} chunks", flush=True)
     model = TextEmbedding(MODEL, threads=os.cpu_count())
     ids = np.array([r[0] for r in rows], dtype=np.int32)
@@ -37,7 +43,7 @@ def embed_shard(db: str, out: str, shard: int, shards: int, batch: int) -> None:
         v = np.asarray(v, dtype=np.float32)
         v /= np.linalg.norm(v) or 1.0
         vecs[n] = np.clip(np.round(v * 127), -127, 127).astype(np.int8)
-        if n and n % 20000 == 0:
+        if n and n % 5000 == 0:
             print(f"  {n} chunks, {n / (time.time() - t0):.0f}/s", flush=True)
     os.makedirs(out, exist_ok=True)
     vecs.tofile(os.path.join(out, f"shard-{shard:02d}.i8"))
