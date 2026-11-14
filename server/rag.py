@@ -17,6 +17,7 @@ Pipeline for one question (all real time, nothing precomputed per question):
 import json
 import re
 import sqlite3
+import threading
 from dataclasses import dataclass, field
 
 from subjects import detect
@@ -40,10 +41,22 @@ class Retrieved:
 
 class KnowledgeLayer:
     def __init__(self, db_path: str):
-        self.db = sqlite3.connect(db_path, check_same_thread=False)
-        self.db.row_factory = sqlite3.Row
+        self._path = db_path
+        self._local = threading.local()
         self.counsel = {r["id"]: r["name"] for r in self.db.execute("SELECT id, name FROM counsel")}
         self.source = {r["key"]: json.loads(r["value"]) for r in self.db.execute("SELECT key, value FROM source")}
+
+    @property
+    def db(self) -> sqlite3.Connection:
+        """One read-only connection per thread: the web server answers requests
+        (and health checks) on several threads, and a SQLite connection must
+        not be shared between them."""
+        conn = getattr(self._local, "conn", None)
+        if conn is None:
+            conn = sqlite3.connect(f"file:{self._path}?mode=ro", uri=True, check_same_thread=False)
+            conn.row_factory = sqlite3.Row
+            self._local.conn = conn
+        return conn
 
     # 1. Interpret --------------------------------------------------------
     def interpret(self, question: str, side: str | None = None) -> dict:

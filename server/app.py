@@ -54,6 +54,8 @@ def analyze(req: AnalyzeRequest):
         return analysis.analyze(kl, req.text, req.side)
     except ValueError as e:
         raise HTTPException(413, str(e))
+    except Exception as e:  # report instead of dropping the connection
+        raise HTTPException(500, f"Analysis failed: {type(e).__name__}: {e}")
 
 
 @app.post("/v1/ask")
