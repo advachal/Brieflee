@@ -152,13 +152,13 @@ Real, tested logic that will carry into production:
 ## AI document analysis (optional)
 
 `server/` also exposes `POST /v1/analyze`. The website sends an uploaded
-document's text; the server splits it into overlapping passages, asks Claude
-(`claude-opus-5-5`, structured JSON output) for the issues the matter turns
+document's text; the server splits it into overlapping passages, asks an LLM
+(Gemini `gemini-3.5-flash` by default via `GEMINI_API_KEY`, or Claude
+`claude-opus-5-5` via `ANTHROPIC_API_KEY`; structured JSON output) for the issues the matter turns
 on, the statutes, the client's likely side and a search query per issue, then
 searches the knowledge layer for each issue and fuses the results
 (reciprocal-rank fusion) before ranking counsel with the same rules as Ask.
-The document is processed in memory and not stored. Without
-`ANTHROPIC_API_KEY` it falls back to keyword matching per passage.
+The document is processed in memory and not stored. Without a key it falls back to keyword matching per passage.
 
 The API key stays on the server; the website never sees it.
 
@@ -181,8 +181,8 @@ it, and uploaded judgments are read in the visitor's browser.
 **Knowledge service (optional).** For full-text retrieval and AI summaries, deploy
 `server/` (Docker; `render.yaml` is a Render blueprint). The knowledge database ships
 gzipped and split in `knowledge/` and is unpacked at start-up (see
-`knowledge/README.md`); set `ANTHROPIC_API_KEY` for AI document analysis and
-summaries. Then add a repository variable `BRIEFLEE_KNOWLEDGE_URL` (Settings → Secrets
+`knowledge/README.md`); set `GEMINI_API_KEY` (or `ANTHROPIC_API_KEY`) for AI document analysis
+and summaries. Then add a repository variable `BRIEFLEE_KNOWLEDGE_URL` (Settings → Secrets
 and variables → Actions → Variables) with the service URL, and re-run the Pages
 workflow, so the website uses it.
 

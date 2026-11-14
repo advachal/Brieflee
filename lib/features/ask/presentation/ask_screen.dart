@@ -961,7 +961,7 @@ class _ServiceAnalysis extends ConsumerWidget {
       padding: const EdgeInsets.only(bottom: 20),
       child: SectionCard(
         title: 'AI reading of your document',
-        subtitle: 'Claude split the document into passages, found the issues it turns on, and searched the knowledge layer for each one.',
+        subtitle: 'The AI split the document into passages, found the issues it turns on, and searched the knowledge layer for each one.',
         child: a.when(
           loading: () => const Padding(
             padding: EdgeInsets.symmetric(vertical: 12),

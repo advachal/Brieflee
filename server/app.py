@@ -4,11 +4,11 @@
     python tool/knowledge/build_knowledge.py          # builds build/knowledge/knowledge.db
     KNOWLEDGE_DB=build/knowledge/knowledge.db uvicorn app:app --app-dir server --port 8080
 
-Optional: set ANTHROPIC_API_KEY to add a grounded, cited narrative answer.
+Optional: set GEMINI_API_KEY (or ANTHROPIC_API_KEY) for AI document analysis and a grounded, cited answer.
 Point the Flutter app at it with --dart-define=BRIEFLEE_KNOWLEDGE_URL=http://localhost:8080
 
 POST /v1/ask      a question in plain words
-POST /v1/analyze  an uploaded document's text: chunked, issues found (Claude), linked to similar decisions
+POST /v1/analyze  an uploaded document's text: chunked, issues found (Gemini or Claude), linked to similar decisions
 """
 import os
 
@@ -18,6 +18,7 @@ from pydantic import BaseModel
 
 import analyze as analysis
 import generate
+import llm
 from rag import KnowledgeLayer
 
 DB = os.environ.get("KNOWLEDGE_DB", os.path.join(os.path.dirname(__file__), "..", "build", "knowledge", "knowledge.db"))
@@ -41,7 +42,7 @@ class AskRequest(BaseModel):
 def health():
     n = kl.db.execute("SELECT count(*) FROM records").fetchone()[0]
     return {"ok": True, "records": n, "generation": generate.available(),
-            "document_analysis": "claude" if generate.available() else "keywords", "source": kl.source}
+            "document_analysis": llm.label() or "keywords", "source": kl.source}
 
 
 @app.post("/v1/analyze")

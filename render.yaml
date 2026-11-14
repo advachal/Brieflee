@@ -1,5 +1,5 @@
-# Render blueprint for the optional knowledge service. Set ANTHROPIC_API_KEY
-# in the dashboard if you want grounded AI summaries.
+# Render blueprint for the knowledge service. In the Render dashboard set
+# GEMINI_API_KEY (or ANTHROPIC_API_KEY) for AI document analysis and answers.
 services:
   - type: web
     name: brieflee-knowledge
@@ -8,5 +8,7 @@ services:
     plan: free
     healthCheckPath: /v1/health
     envVars:
-      - key: ANTHROPIC_API_KEY
+      - key: GEMINI_API_KEY
         sync: false
+      - key: GEMINI_MODEL
+        value: gemini-3.5-flash

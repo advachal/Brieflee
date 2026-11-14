@@ -2,10 +2,10 @@
 and link each issue to similar decisions in the knowledge layer.
 
 1. Chunk the text into overlapping passages (by paragraph).
-2. With Claude configured: read the whole document once and return, as
+2. With an LLM configured (Gemini or Claude): read the whole document once and return, as
    structured JSON, a short summary, the client's likely side, and the legal
    issues, each with a search query, the statutes it turns on and the chunks
-   it comes from. Without Claude: each chunk becomes an "issue" whose query
+   it comes from. Without one: each chunk becomes an "issue" whose query
    is its most distinctive words.
 3. For every issue, retrieve similar decisions (BM25 over judgment text).
    Results are fused across issues with reciprocal-rank fusion, so a
@@ -21,6 +21,7 @@ import re
 from collections import Counter
 
 import generate
+import llm
 from rag import STOP, KnowledgeLayer, Retrieved
 
 MAX_CHARS = 600_000  # about 150k tokens; larger documents are refused, not cut
@@ -88,28 +89,16 @@ def chunk_document(text: str) -> list[str]:
 
 
 def _llm_issues(chunks: list[str]) -> dict | None:
-    if not generate.available():
+    if not llm.available():
         return None
-    import anthropic
-
     doc = "\n\n".join(f"[CHUNK {i + 1}]\n{c}" for i, c in enumerate(chunks))
-    client = anthropic.Anthropic()
-    response = client.beta.messages.create(
-        model="claude-opus-5-5",
-        max_tokens=16000,
-        output_config={"effort": "medium", "format": {"type": "json_schema", "schema": ISSUES_SCHEMA}},
-        betas=["server-side-fallback-2026-07-01"],
-        fallbacks="default",
-        system=SYSTEM,
-        messages=[{"role": "user", "content": f"<document>\n{doc}\n</document>\n\nList the issues as JSON."}],
-    )
-    if response.stop_reason in ("refusal", "max_tokens"):
-        return None
-    text = next((b.text for b in response.content if b.type == "text"), "")
     try:
-        return json.loads(text)
-    except json.JSONDecodeError:
+        plan = llm.complete_json(SYSTEM, f"<document>\n{doc}\n</document>\n\nList the issues as JSON.", ISSUES_SCHEMA)
+    except Exception:
         return None
+    if not plan or not plan.get("issues"):
+        return None
+    return plan
 
 
 def _keyword_issues(chunks: list[str], limit: int = 8) -> dict:
@@ -138,7 +127,7 @@ def analyze(kl: KnowledgeLayer, text: str, side: str | None = None, per_issue: i
         raise ValueError(f"Document is {len(text):,} characters; the limit is {MAX_CHARS:,}. Upload the main judgment or pleading only.")
     chunks = chunk_document(text)
     plan = _llm_issues(chunks)
-    method = "claude" if plan else "keywords"
+    method = (llm.provider() or "keywords") if plan else "keywords"
     if plan is None:
         plan = _keyword_issues(chunks)
     if side is None and plan.get("client_side") in ("petitioner", "respondent"):
