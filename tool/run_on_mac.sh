@@ -58,5 +58,5 @@ export GEMINI_API_KEY KNOWLEDGE_DB="$HOME_DIR/knowledge.db" WEB_DIR="$HOME_DIR/w
 echo
 echo "== Starting. Open http://localhost:8000/Brieflee/ in Chrome (Control-C to stop)."
 (sleep 4 && open "http://localhost:8000/Brieflee/") >/dev/null 2>&1 &
-exec "$UV" run --python 3.12 --with-requirements server/requirements.txt \
+exec "$UV" run --no-project --isolated --python 3.12 --with-requirements server/requirements.txt \
   uvicorn app:app --app-dir server --host 127.0.0.1 --port 8000
