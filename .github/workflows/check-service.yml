@@ -26,13 +26,13 @@ jobs:
             if curl -fsS -m 60 "$URL/v1/health" -o health.json; then break; fi
             sleep 10
           done
-          python3 -c "import json;d=json.load(open('health.json'));print({k:d.get(k) for k in ('ok','records','generation','document_analysis')})"
+          python3 -c "import json;d=json.load(open('health.json'));print({k:d.get(k) for k in ('ok','records','generation','document_analysis','search_by_meaning')})"
       - name: Ask a question
         run: |
           curl -sS -m 240 -H 'content-type: application/json' \
-            --data '{"question":"set aside arbitral award under section 34"}' "$URL/v1/ask" \
+            --data '{"question":"Our client wants to challenge an arbitral award that ignored a limitation clause in the contract"}' "$URL/v1/ask" \
             -o ask.json -w "HTTP %{http_code} in %{time_total}s\n"
-          python3 -c "import json;j=json.load(open('ask.json'));print(j['similar_decisions'],[c['name'] for c in j['counsel'][:5]])" || head -c 500 ask.json
+          python3 .github/scripts/print_ask.py ask.json || head -c 500 ask.json
       - name: Extract case facts from the sample judgment
         run: |
           python3 -c "import json;print(json.dumps({'text':open('test/fixtures/sample_judgment.txt').read()}))" > body.json
