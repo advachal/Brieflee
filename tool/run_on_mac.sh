@@ -24,10 +24,21 @@ UV=$(command -v uv || echo "$HOME/.local/bin/uv")
 
 # 2. The server code and the website (latest from GitHub).
 echo "== Fetching the server and website…"
-if curl -fsSL -o server.zip "https://github.com/$REPO/releases/download/web-latest/brieflee-server.zip"; then
+# The server comes file by file from the latest commit (always current); the
+# release zip is the fallback.
+SHA=$(curl -fsSL -H "Accept: application/vnd.github.sha" "https://api.github.com/repos/$REPO/commits/main" 2>/dev/null || true)
+FILES=""
+[ -n "$SHA" ] && FILES=$(curl -fsSL "https://api.github.com/repos/$REPO/contents/server?ref=$SHA" 2>/dev/null \
+  | grep '"type": "file"' -B20 | sed -n 's/.*"name": "\([^"]*\)".*/\1/p' || true)
+if [ -n "$FILES" ]; then
+  rm -rf server.new && mkdir server.new
+  ok=1
+  for f in $FILES; do curl -fsSL -o "server.new/$f" "https://raw.githubusercontent.com/$REPO/$SHA/server/$f" || ok=0; done
+  if [ "$ok" = 1 ]; then rm -rf server && mv server.new server; else rm -rf server.new; FILES=""; fi
+fi
+if [ -z "$FILES" ]; then
+  curl -fsSL -o server.zip "https://github.com/$REPO/releases/download/web-latest/brieflee-server.zip"
   rm -rf server && unzip -q -o server.zip && rm server.zip
-else  # older releases: take the server from a snapshot of the code
-  curl -fsSL "https://codeload.github.com/$REPO/tar.gz/refs/heads/main" | tar -xz --strip-components=1 "Brieflee-main/server"
 fi
 curl -fsSL -o web.zip "https://github.com/$REPO/releases/download/web-latest/brieflee-web.zip"
 rm -rf web && unzip -q -o web.zip && rm web.zip
