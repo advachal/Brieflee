@@ -1,0 +1,63 @@
+name: Harvest judgment archive
+
+# Reads judgment PDFs from the Open India Law archive (AWS Open Data, CC BY 4.0)
+# one court-year at a time and saves their text as release assets
+# (release "archive-text-<year>", asset "text_<year>_<court>_<bench>.jsonl.gz").
+# Re-running skips shards already uploaded, so it resumes after a failure.
+on:
+  workflow_dispatch:
+    inputs:
+      years:
+        description: "Years, e.g. 2024 or 2015-2025"
+        default: "2015-2025"
+      courts:
+        description: "Courts: 7_26 = Delhi High Court, sc = Supreme Court (comma-separated), or all"
+        default: "7_26,sc"
+
+permissions:
+  contents: write
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.plan.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: plan
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: echo "matrix=$(python3 tool/archive/plan.py --years '${{ inputs.years }}' --courts '${{ inputs.courts }}' --repo '${{ github.repository }}')" >> "$GITHUB_OUTPUT"
+
+  harvest:
+    needs: plan
+    if: fromJSON(needs.plan.outputs.matrix).include[0] != null
+    runs-on: ubuntu-latest
+    timeout-minutes: 340
+    strategy:
+      fail-fast: false
+      max-parallel: 12
+      matrix: ${{ fromJSON(needs.plan.outputs.matrix) }}
+    name: ${{ matrix.court }} ${{ matrix.year }} ${{ matrix.bench }}
+    env:
+      GH_TOKEN: ${{ github.token }}
+      ASSET: text_${{ matrix.year }}_${{ matrix.court }}_${{ matrix.bench }}.jsonl.gz
+      TAG: archive-text-${{ matrix.year }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install --quiet pymupdf
+      - name: Read the judgments
+        run: python tool/archive/harvest_tar.py --year ${{ matrix.year }} --court ${{ matrix.court }} --bench ${{ matrix.bench }} --out "$ASSET" --workers 4
+      - name: Upload to the year's release
+        run: |
+          ls -lh "$ASSET"
+          for i in 1 2 3 4 5; do
+            gh release view "$TAG" >/dev/null 2>&1 || gh release create "$TAG" --title "Judgment text $(echo $TAG | cut -d- -f3)" \
+              --notes "Text of Delhi High Court and Supreme Court judgments from the Open India Law archive (AWS Open Data, CC BY 4.0). One gzipped JSON line per judgment. Built by the Harvest judgment archive workflow." || true
+            if gh release upload "$TAG" "$ASSET" --clobber; then exit 0; fi
+            sleep $((i * 10))
+          done
+          exit 1
