@@ -260,4 +260,25 @@ void main() {
     expect(a.interpretation.subjects.map((s) => s.id), ['arbitration']);
     expect(a.benchJudgeId, judge);
   });
+
+  test('reads a trial-court written statement heading', () {
+    const text = """BEFORE THE HON'BLE COURT OF THE LD. DISTRICT
+JUDGE
+(COMMERCIAL COURT), NEW DELHI DISTRICT,
+PATIALA HOUSE COURTS, NEW DELHI
+CS (COMM.) NO. 104 OF 2026
+IN THE MATTER OF:
+FOCUS LIGHTING AND FIXTURES LIMITED
+...PLAINTIFF
+VERSUS
+ROYALUX LIGHTING PRIVATE LIMITED
+...DEFENDANT
+WRITTEN STATEMENT FILED ON BEHALF OF THE DEFENDANT
+The plaintiff relies on the Designs Act, 2000. See the Delhi High Court in X v. Y.""";
+    final f = FactExtractor(snap).extract(text);
+    expect(f.court, contains('District'));
+    expect(f.court, isNot(contains('High Court')));
+    expect(f.caseNumber, contains('104/2026'));
+    expect(f.petitioner, 'Focus Lighting And Fixtures Limited');
+  });
 }

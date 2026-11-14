@@ -342,6 +342,21 @@ class _AskScreenState extends ConsumerState<AskScreen> {
         ],
       );
     }
+    final request = jsonEncode({
+      'text': text,
+      if (confirmed.side != null)
+        'side': confirmed.side == RecordSide.petitioner ? 'p' : 'r',
+      'facts': {
+        // Without issues (no AI reading), the document's own distinctive
+        // terms and sections stand in as one issue.
+        'issues': confirmed.issues.isEmpty
+            ? [engine.documentQuery(text)]
+            : confirmed.issues,
+        'statutes': confirmed.statutes,
+        'summary': confirmed.summary,
+        'subject': confirmed.subject?.label,
+      },
+    });
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -356,21 +371,16 @@ class _AskScreenState extends ConsumerState<AskScreen> {
           }),
         ),
         const SizedBox(height: 16),
-        _ServiceAnalysis(
-          request: jsonEncode({
-            'text': text,
-            if (confirmed.side != null)
-              'side': confirmed.side == RecordSide.petitioner ? 'p' : 'r',
-            'facts': {
-              'issues': confirmed.issues,
-              'statutes': confirmed.statutes,
-              'summary': confirmed.summary,
-              'subject': confirmed.subject?.label,
-            },
-          }),
+        _ServiceAnalysis(request: request, engine: engine),
+        _ArchiveDocumentResults(request: request),
+        _Results(
           engine: engine,
+          query: '',
+          facts: confirmed,
+          heading: service
+              ? 'From the records built into the app (Delhi High Court, 2023 to 2025)'
+              : null,
         ),
-        _Results(engine: engine, query: '', facts: confirmed),
       ],
     );
   }
@@ -535,7 +545,7 @@ class _UploadLead extends StatelessWidget {
             ),
             const SizedBox(height: 6),
             Text(
-              'It is read in your browser and never uploaded. We match it against the knowledge layer and show who won similar matters.',
+              'It is read in your browser first. You check the facts, then we match it against the judgments and show who won similar matters.',
               textAlign: TextAlign.center,
               style: t.bodySmall?.copyWith(color: AppColors.muted),
             ),
@@ -723,7 +733,11 @@ class _Results extends ConsumerWidget {
     this.subjectId,
     this.benchJudgeId,
     this.facts,
+    this.heading,
   });
+
+  /// A title above the results (used when other results come first).
+  final String? heading;
   final AskEngine engine;
   final String query;
   final SideChoice side;
@@ -765,6 +779,14 @@ class _Results extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        if (heading != null) ...[
+          Text(
+            heading!,
+            style: Theme.of(context).textTheme.headlineSmall
+                ?.copyWith(color: AppColors.navy),
+          ),
+          const SizedBox(height: 12),
+        ],
         _Interpretation(answer: answer, snapshot: snapshot),
         const SizedBox(height: 20),
         if (facts == null) _ArchiveResults(query: query),
@@ -1597,6 +1619,201 @@ class _DecisionsSectionState extends State<_DecisionsSection> {
 
 /// Issues found in an uploaded document by the knowledge service (Claude),
 /// each linked to similar decisions. Shown only when the service is connected.
+/// Counsel and similar decisions for an uploaded document, from the
+/// service's full archive (all courts and years it holds).
+class _ArchiveDocumentResults extends ConsumerWidget {
+  const _ArchiveDocumentResults({required this.request});
+  final String request;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    if (!ref.watch(knowledgeServiceProvider).configured) {
+      return const SizedBox.shrink();
+    }
+    final m = ref.watch(documentAnalysisProvider(request)).value;
+    if (m == null) return const SizedBox.shrink();
+    final t = Theme.of(context).textTheme;
+    final cases = (m['cases'] as List).cast<Map<String, dynamic>>();
+    final counsel = (m['counsel'] as List).cast<Map<String, dynamic>>();
+    final wide = MediaQuery.sizeOf(context).width >= 1100;
+
+    final left = Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(
+          'Counsel who won similar matters',
+          style: t.headlineSmall?.copyWith(color: AppColors.navy),
+        ),
+        const SizedBox(height: 6),
+        Text(
+          'Favourable and unfavourable decided outcomes in the similar decisions, favourable rate smoothed toward 50%. '
+          'Evidence, not a win probability.',
+          style: t.bodySmall?.copyWith(color: AppColors.muted),
+        ),
+        const SizedBox(height: 8),
+        if (counsel.isEmpty)
+          Text(
+            'Not enough decided outcomes among these decisions to rank anyone.',
+            style: t.bodyLarge,
+          ),
+        for (final (i, c) in counsel.indexed) ...[
+          const Divider(height: 1),
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 12),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SizedBox(
+                  width: 30,
+                  child: Text(
+                    '${i + 1}',
+                    style: t.titleLarge?.copyWith(color: AppColors.gold),
+                  ),
+                ),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      InkWell(
+                        onTap: () =>
+                            context.go(Routes.counsel(q: c['name'] as String)),
+                        child: Text(
+                          c['name'] as String,
+                          style: t.titleMedium?.copyWith(
+                            color: AppColors.navy,
+                            decoration: TextDecoration.underline,
+                            decorationColor: AppColors.border,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        '${c['favourable']} favourable · ${c['unfavourable']} unfavourable · '
+                        '${c['similar_matters']} similar matters · ${((c['smoothed_favourable_rate'] as num) * 100).round()}% smoothed rate',
+                        style: t.bodySmall?.copyWith(color: AppColors.muted),
+                      ),
+                    ],
+                  ),
+                ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(
+                      '${(c['score'] as num).round()}',
+                      style: t.titleLarge?.copyWith(color: AppColors.navy),
+                    ),
+                    Text(switch (c['eligible_outcomes'] as int) {
+                      >= 15 => 'High evidence',
+                      >= 6 => 'Medium evidence',
+                      _ => 'Low evidence',
+                    }, style: t.labelSmall?.copyWith(color: AppColors.muted)),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ],
+    );
+
+    final right = Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(
+          'Similar decisions',
+          style: t.headlineSmall?.copyWith(color: AppColors.navy),
+        ),
+        const SizedBox(height: 6),
+        Text(
+          'Most similar first, from every year and court in the archive. Each opens the official judgment PDF.',
+          style: t.bodySmall?.copyWith(color: AppColors.muted),
+        ),
+        const SizedBox(height: 8),
+        for (final c in cases) ...[
+          const Divider(height: 1),
+          InkWell(
+            onTap: c['pdf_url'] == null
+                ? null
+                : () => openPdf(context, Uri.parse(c['pdf_url'] as String)),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '${c['case_number']} · ${c['decision_date']} · ${c['outcome']}',
+                    style: t.labelLarge?.copyWith(color: AppColors.teal),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    c['title'] as String,
+                    style: t.titleMedium?.copyWith(color: AppColors.navy),
+                  ),
+                  if ((c['passage'] as String? ?? '').isNotEmpty) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      '“${(c['passage'] as String).replaceAll(RegExp(r'[\[\]]'), '')}”',
+                      maxLines: 3,
+                      overflow: TextOverflow.ellipsis,
+                      style: t.bodySmall?.copyWith(
+                        color: AppColors.muted,
+                        fontStyle: FontStyle.italic,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ),
+        ],
+      ],
+    );
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 36),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            'ACROSS THE FULL ARCHIVE',
+            style: t.labelMedium?.copyWith(
+              color: AppColors.gold,
+              letterSpacing: 2,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            '${fmtInt(m['similar_decisions'] as int)} similar decisions found in the full text of every judgment the Brieflee service holds.',
+            style: t.bodyLarge,
+          ),
+          const SizedBox(height: 18),
+          if (wide)
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(flex: 5, child: left),
+                const SizedBox(width: 40),
+                Expanded(flex: 6, child: right),
+              ],
+            )
+          else ...[
+            left,
+            const SizedBox(height: 28),
+            right,
+          ],
+          if (m['attribution'] != null) ...[
+            const SizedBox(height: 12),
+            Text(
+              m['attribution'] as String,
+              style: t.bodySmall?.copyWith(color: AppColors.muted),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
 class _ServiceAnalysis extends ConsumerWidget {
   const _ServiceAnalysis({required this.request, required this.engine});
 
@@ -1614,8 +1831,8 @@ class _ServiceAnalysis extends ConsumerWidget {
     return Padding(
       padding: const EdgeInsets.only(bottom: 20),
       child: SectionCard(
-        title: 'AI reading of your document',
-        subtitle: 'The AI split the document into passages, found the issues it turns on, and searched the knowledge layer for each one.',
+        title: 'Reading of your document',
+        subtitle: 'The document split into passages, the issues it turns on (read by the AI when it is available, otherwise as you confirmed them), and the closest decisions for each.',
         child: a.when(
           loading: () => const Padding(
             padding: EdgeInsets.symmetric(vertical: 12),
@@ -1630,7 +1847,6 @@ class _ServiceAnalysis extends ConsumerWidget {
               );
             }
             final issues = (m['issues'] as List).cast<Map<String, dynamic>>();
-            final counsel = (m['counsel'] as List).cast<Map<String, dynamic>>();
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -1651,10 +1867,22 @@ class _ServiceAnalysis extends ConsumerWidget {
                   const SizedBox(height: 16),
                 ],
                 for (final (i, issue) in issues.indexed) ...[
-                  Text(
-                    '${i + 1}. ${issue['title']}',
-                    style: t.titleMedium?.copyWith(color: AppColors.navy),
-                  ),
+                  if ((issue['title'] as String).length > 90) ...[
+                    Text(
+                      '${i + 1}. Distinctive terms of your document',
+                      style: t.titleMedium?.copyWith(color: AppColors.navy),
+                    ),
+                    Text(
+                      issue['title'] as String,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: t.bodySmall?.copyWith(color: AppColors.muted),
+                    ),
+                  ] else
+                    Text(
+                      '${i + 1}. ${issue['title']}',
+                      style: t.titleMedium?.copyWith(color: AppColors.navy),
+                    ),
                   if ((issue['statutes'] as List).isNotEmpty)
                     Text(
                       (issue['statutes'] as List).join('; '),
@@ -1667,31 +1895,6 @@ class _ServiceAnalysis extends ConsumerWidget {
                           .take(3))
                     _ServiceCaseLink(card: c, engine: engine),
                   const SizedBox(height: 12),
-                ],
-                if (counsel.isNotEmpty) ...[
-                  const Divider(),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Counsel who won these matters',
-                    style: t.titleMedium?.copyWith(color: AppColors.navy),
-                  ),
-                  const SizedBox(height: 6),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: [
-                      for (final c in counsel.take(8))
-                        ActionChip(
-                          avatar: const Icon(Icons.person_outline, size: 18),
-                          label: Text(
-                            '${c['name']} · ${c['favourable']} won, ${c['unfavourable']} lost',
-                          ),
-                          onPressed: () => context.go(
-                            Routes.counsel(q: c['name'] as String),
-                          ),
-                        ),
-                    ],
-                  ),
                 ],
                 if (m['answer'] != null) ...[
                   const SizedBox(height: 16),

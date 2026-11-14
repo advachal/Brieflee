@@ -176,10 +176,27 @@ class FactExtractor {
       r'IN\s+THE\s+HIGH\s+COURT\s+OF\s+([A-Z &]+?)(?:\s+AT\s+([A-Z ]+?))?\s*\n',
       caseSensitive: false,
     ).firstMatch(head);
+    // Only the heading names the court; later pages cite other courts.
+    final top = head.length > 700 ? head.substring(0, 700) : head;
+    final lowerTop = top.toLowerCase();
+    final trialCourt = RegExp(
+      r'(?:BEFORE|IN)\s+THE\s+(?:HON.?BLE\s+)?(?:COURT\s+OF\s+(?:THE\s+)?)?(?:LD\.?\s+|LEARNED\s+)?((?:[^\n]*\n?){1,5}?)(?=\s*(?:[A-Z.() ]{2,20}\s*NO\.?|IN\s+THE\s+MATTER|\n\s*\n))',
+      caseSensitive: false,
+    ).firstMatch(top);
     if (court != null) {
       f.court = 'High Court of ${_title(court.group(1)!.trim())}';
-    } else if (lower.contains('high court of delhi') ||
-        lower.contains('delhi high court')) {
+    } else if (lowerTop.contains('supreme court of india')) {
+      f.court = 'Supreme Court of India';
+    } else if (trialCourt != null &&
+        RegExp(
+          r'district|commercial court|civil judge|tribunal|magistrate|sessions',
+          caseSensitive: false,
+        ).hasMatch(trialCourt.group(1)!)) {
+      f.court = _title(
+        trialCourt.group(1)!.replaceAll(RegExp(r'\s+'), ' ').trim(),
+      );
+    } else if (lowerTop.contains('high court of delhi') ||
+        lowerTop.contains('delhi high court')) {
       f.court = 'High Court of Delhi';
     }
 
@@ -187,7 +204,12 @@ class FactExtractor {
     // spaces and full stops removed ("O.M.P. (COMM.) 353/2022").
     String compact(String x) =>
         x.toUpperCase().replaceAll(RegExp(r'[\s.]'), '');
-    final compactHead = compact(head);
+    // Line breaks stay, so a heading line ("NEW DELHI") does not run into
+    // the case type on the next line.
+    final compactHead = head
+        .toUpperCase()
+        .replaceAll(RegExp(r'[ \t.]'), '')
+        .replaceAll(RegExp(r'\n+'), '\n');
     final types = [...snapshot.caseTypes]
       ..sort((a, b) => compact(b).length.compareTo(compact(a).length));
     String? caseType;
@@ -195,7 +217,7 @@ class FactExtractor {
       final ct = compact(t);
       if (ct.length < 2) continue;
       final m = RegExp(
-        '(?<![A-Z])${RegExp.escape(ct)}(?:NO)?(\\d{1,6})/(\\d{4})',
+        '(?<![A-Z])${RegExp.escape(ct)}(?:NO)?(\\d{1,6})(?:/|OF)(\\d{4})',
       ).firstMatch(compactHead);
       if (m != null) {
         caseType = t;
@@ -328,6 +350,10 @@ class FactExtractor {
 
   static String _title(String s) => s
       .replaceFirst(RegExp(r'^(versus|vs\.?)\s+', caseSensitive: false), '')
+      .replaceFirst(
+        RegExp(r'^in\s+the\s+matter\s+of\s*:?\s*', caseSensitive: false),
+        '',
+      )
       .replaceAll(RegExp(r'\s+'), ' ')
       .trim()
       .toLowerCase()
