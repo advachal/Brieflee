@@ -4,7 +4,7 @@
 #
 #   curl -fsSL https://raw.githubusercontent.com/advachal/Brieflee/main/tool/run_on_mac.sh | bash
 #
-# First run downloads about 1.7 GB and needs about 8 GB of free disk. Later
+# First run downloads about 2.7 GB and needs about 9 GB of free disk. Later
 # runs start in seconds. Stop it with Control-C. Everything lives in
 # ~/Brieflee-local; delete that folder to remove it.
 set -euo pipefail
@@ -45,18 +45,38 @@ if [ ! -s knowledge.db ] || [ "$(cat knowledge.db.sha256 2>/dev/null)" != "$WANT
   echo "$WANT" > knowledge.db.sha256
 fi
 
-# 4. Optional: your Gemini key for the AI reading of uploaded documents.
-#    Kept only in this folder (gemini.key), never sent anywhere but Google.
-if [ ! -f gemini.key ]; then
-  echo
-  echo "Optional: paste your Gemini API key for AI document reading, then press Return."
-  echo "(Press Return alone to skip; you can add it later in $HOME_DIR/gemini.key)"
-  read -r -s KEY < /dev/tty || KEY=""
-  printf '%s' "$KEY" > gemini.key
-  chmod 600 gemini.key
+# 3b. Search by meaning: one vector per passage (about 1 GB), when published
+#     for this database.
+REL="https://github.com/$REPO/releases/download/knowledge-db"
+EMB_FOR=$(curl -fsSL "$REL/knowledge.emb.sha256" 2>/dev/null | cut -d' ' -f1 || true)
+if [ -n "$EMB_FOR" ] && [ "$EMB_FOR" = "$WANT" ] && [ "$(cat knowledge.emb.sha256 2>/dev/null)" != "$WANT" ]; then
+  echo "== Downloading search by meaning (about 1 GB)…"
+  curl -fL --retry 5 -o knowledge.emb.rowids "$REL/knowledge.emb.rowids"
+  curl -fL --retry 5 -C - -o knowledge.emb.i8.part "$REL/knowledge.emb.i8"
+  mv knowledge.emb.i8.part knowledge.emb.i8
+  echo "$WANT" > knowledge.emb.sha256
+elif [ -n "$EMB_FOR" ] && [ "$EMB_FOR" != "$WANT" ]; then
+  rm -f knowledge.emb.i8 knowledge.emb.rowids knowledge.emb.sha256  # built for another database
 fi
-GEMINI_API_KEY=$(cat gemini.key)
-export GEMINI_API_KEY KNOWLEDGE_DB="$HOME_DIR/knowledge.db" WEB_DIR="$HOME_DIR/web"
+
+# 4. Optional AI keys for reading uploaded documents. Each is kept only in
+#    this folder (groq.key, gemini.key) and sent only to that provider.
+#    Groq is tried first; Gemini is used when Groq is unavailable.
+ask_key() {  # file, prompt
+  if [ ! -f "$1" ]; then
+    echo
+    echo "Optional: paste your $2 API key, then press Return."
+    echo "(Press Return alone to skip; you can add it later in $HOME_DIR/$1)"
+    read -r -s KEY < /dev/tty || KEY=""
+    printf '%s' "$KEY" > "$1"
+    chmod 600 "$1"
+  fi
+}
+ask_key groq.key "Groq (free at console.groq.com)"
+ask_key gemini.key "Gemini"
+GROQ_API_KEY=$(cat groq.key); GEMINI_API_KEY=$(cat gemini.key)
+export GROQ_API_KEY GEMINI_API_KEY KNOWLEDGE_DB="$HOME_DIR/knowledge.db" WEB_DIR="$HOME_DIR/web"
+[ -n "$GROQ_API_KEY" ] || unset GROQ_API_KEY
 [ -n "$GEMINI_API_KEY" ] || unset GEMINI_API_KEY
 
 echo

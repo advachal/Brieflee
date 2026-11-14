@@ -1,0 +1,112 @@
+name: Build embeddings (search by meaning)
+
+# Embeds every judgment chunk of the knowledge database with
+# BAAI/bge-small-en-v1.5 (runs on the CPU, free, no API key), in parallel
+# shards, and adds knowledge.emb.i8 and knowledge.emb.rowids to the
+# knowledge-db release. Run it again after each knowledge database rebuild
+# (the rebuild removes the old files, which would no longer match).
+on:
+  workflow_dispatch:
+    inputs:
+      shards:
+        description: "Parallel jobs"
+        default: "24"
+
+permissions:
+  contents: write
+
+env:
+  SHARDS: ${{ inputs.shards }}
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    outputs:
+      shards: ${{ steps.p.outputs.shards }}
+    steps:
+      - id: p
+        run: echo "shards=$(python3 -c "import json;print(json.dumps(list(range(int('$SHARDS')))))")" >> $GITHUB_OUTPUT
+
+  embed:
+    needs: plan
+    runs-on: ubuntu-latest
+    timeout-minutes: 340
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: ${{ fromJson(needs.plan.outputs.shards) }}
+    env:
+      GH_TOKEN: ${{ github.token }}
+      WORK: /mnt/brieflee
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install --quiet fastembed numpy
+      - name: Download the knowledge database
+        run: |
+          set -e
+          sudo mkdir -p $WORK && sudo chown $USER $WORK
+          cd $WORK
+          base="https://github.com/${{ github.repository }}/releases/download/knowledge-db"
+          for u in $(curl -fsSL $base/knowledge-db.parts); do curl -fsSL --retry 5 "$u"; done | gunzip > knowledge.db
+          ls -lh knowledge.db
+      - name: Embed
+        run: python tool/archive/build_embeddings.py $WORK/knowledge.db $WORK/out --shard ${{ matrix.shard }} --shards $SHARDS
+      - uses: actions/upload-artifact@v4
+        with:
+          name: emb-${{ matrix.shard }}
+          path: /mnt/brieflee/out/
+          retention-days: 3
+          compression-level: 0
+
+  publish:
+    needs: embed
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      WORK: /mnt/brieflee
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install --quiet numpy
+      - run: sudo mkdir -p $WORK && sudo chown $USER $WORK
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: emb-*
+          merge-multiple: true
+          path: /mnt/brieflee/shards
+      - name: Merge and publish
+        run: |
+          set -e
+          cd $WORK
+          python $GITHUB_WORKSPACE/tool/archive/build_embeddings.py --merge shards knowledge.emb.i8 knowledge.emb.rowids --shards $SHARDS
+          curl -fsSL -o knowledge.emb.sha256 "https://github.com/${{ github.repository }}/releases/download/knowledge-db/knowledge.db.sha256"
+          ls -lh knowledge.emb.*
+          gh release upload knowledge-db knowledge.emb.i8 knowledge.emb.rowids knowledge.emb.sha256 -R ${{ github.repository }} --clobber
+
+  check:
+    needs: publish
+    runs-on: ubuntu-latest
+    env:
+      WORK: /mnt/brieflee
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install --quiet -r server/requirements.txt
+      - name: Download database and embeddings
+        run: |
+          set -e
+          sudo mkdir -p $WORK && sudo chown $USER $WORK
+          cd $WORK
+          base="https://github.com/${{ github.repository }}/releases/download/knowledge-db"
+          for u in $(curl -fsSL $base/knowledge-db.parts); do curl -fsSL --retry 5 "$u"; done | gunzip > knowledge.db
+          curl -fsSL --retry 5 -o knowledge.emb.i8 $base/knowledge.emb.i8
+          curl -fsSL --retry 5 -o knowledge.emb.rowids $base/knowledge.emb.rowids
+      - name: Ranking check
+        run: KNOWLEDGE_DB=$WORK/knowledge.db python tool/archive/check_ranking.py

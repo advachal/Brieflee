@@ -126,7 +126,7 @@ def extract_facts(text: str) -> dict | None:
         return None
     facts = llm.complete_json(FACTS_SYSTEM, f"<document>\n{text}\n</document>\n\nExtract the case facts as JSON.", FACTS_SCHEMA)
     if facts is not None:
-        facts["provider"] = llm.label()
+        facts["provider"] = llm.used_label()
     return facts
 
 
@@ -200,7 +200,7 @@ def analyze(kl: KnowledgeLayer, text: str, side: str | None = None, per_issue: i
         method = "confirmed"
     else:
         plan = _llm_issues(chunks)
-        method = (llm.provider() or "keywords") if plan else "keywords"
+        method = (llm.last_used or llm.provider() or "keywords") if plan else "keywords"
         if plan is None:
             plan = _keyword_issues(chunks)
     if side is None and plan.get("client_side") in ("petitioner", "respondent"):

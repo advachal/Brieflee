@@ -21,6 +21,7 @@ import threading
 from dataclasses import dataclass, field
 
 from subjects import detect
+from vectors import VectorIndex
 
 STOP = set("""a an and are as at be by can for from has have how i in is it its me my of on or our that the their this to
 was we were what when which who whom will with would should could you your best lawyer advocate advocates counsel
@@ -45,6 +46,7 @@ class KnowledgeLayer:
         self._local = threading.local()
         self.counsel = {r["id"]: r["name"] for r in self.db.execute("SELECT id, name FROM counsel")}
         self.source = {r["key"]: json.loads(r["value"]) for r in self.db.execute("SELECT key, value FROM source")}
+        self.vectors = VectorIndex(db_path)
 
     @property
     def db(self) -> sqlite3.Connection:
@@ -69,27 +71,27 @@ class KnowledgeLayer:
                 side = "r"
             elif re.search(r"\b(petitioner|plaintiff|appellant|i want to (?:file|challenge|sue)|filing|wants? to (?:file|challenge|sue|set aside)|challeng\w*)\b", q):
                 side = "p"
-        return {"subjects": [(s, l) for s, l, _ in subjects], "subject_matchers": [m for _, _, m in subjects],
+        return {"text": question, "subjects": [(s, l) for s, l, _ in subjects], "subject_matchers": [m for _, _, m in subjects],
                 "sections": sections, "terms": words, "side": side}
 
     # 2. Retrieve -----------------------------------------------------------
     def retrieve(self, interp: dict, k: int = 120) -> list[Retrieved]:
-        terms = list(dict.fromkeys(interp["terms"] + [f"section {s}" for s in interp["sections"]]))
-        if not terms:
-            return []
-        fts = " OR ".join('"' + t.replace('"', "") + '"' for t in terms[:24])
-        rows = self.db.execute(
-            """SELECT c.record_id, bm25(chunks_fts) AS s, snippet(chunks_fts, 0, '[', ']', ' … ', 40) AS snip
-               FROM chunks_fts JOIN chunks c ON c.rowid = chunks_fts.rowid
-               WHERE chunks_fts MATCH ? ORDER BY s LIMIT 4000""", (fts,)).fetchall()
-        best: dict[str, Retrieved] = {}
-        for r in rows:
-            score = -r["s"]  # bm25() is lower-is-better
-            cur = best.get(r["record_id"])
-            if cur is None:
-                best[r["record_id"]] = Retrieved(r["record_id"], score, r["snip"])
-            else:
-                cur.score += 0.15 * score  # several matching passages: a little extra weight
+        best = self._keyword_hits(interp)
+        meaning = self._meaning_hits(interp.get("text", ""))
+        if meaning:
+            # Reciprocal rank fusion: a decision near the top of either list
+            # (same words, or same meaning in other words) rises.
+            kw = sorted(best.values(), key=lambda r: r.score, reverse=True)
+            fused: dict[str, Retrieved] = {}
+            for rank, r in enumerate(kw):
+                fused[r.record_id] = Retrieved(r.record_id, 1.0 / (60 + rank), r.passage)
+            for rank, r in enumerate(meaning):
+                cur = fused.get(r.record_id)
+                if cur is None:
+                    fused[r.record_id] = Retrieved(r.record_id, 1.0 / (60 + rank), r.passage)
+                else:
+                    cur.score += 1.0 / (60 + rank)
+            best = fused
         ids = list(best)
         metas = {}
         for i in range(0, len(ids), 500):
@@ -114,6 +116,47 @@ class KnowledgeLayer:
             out.append(r)
         out.sort(key=lambda x: x.score, reverse=True)
         return out[:k]
+
+    def _keyword_hits(self, interp: dict) -> dict[str, Retrieved]:
+        terms = list(dict.fromkeys(interp["terms"] + [f"section {s}" for s in interp["sections"]]))
+        if not terms:
+            return {}
+        fts = " OR ".join('"' + t.replace('"', "") + '"' for t in terms[:24])
+        rows = self.db.execute(
+            """SELECT c.record_id, bm25(chunks_fts) AS s, snippet(chunks_fts, 0, '[', ']', ' … ', 40) AS snip
+               FROM chunks_fts JOIN chunks c ON c.rowid = chunks_fts.rowid
+               WHERE chunks_fts MATCH ? ORDER BY s LIMIT 4000""", (fts,)).fetchall()
+        best: dict[str, Retrieved] = {}
+        for r in rows:
+            score = -r["s"]  # bm25() is lower-is-better
+            cur = best.get(r["record_id"])
+            if cur is None:
+                best[r["record_id"]] = Retrieved(r["record_id"], score, r["snip"])
+            else:
+                cur.score += 0.15 * score  # several matching passages: a little extra weight
+        return best
+
+    def _meaning_hits(self, text: str) -> list[Retrieved]:
+        """Decisions whose passages are closest in meaning, best first."""
+        if not self.vectors.ready:
+            return []
+        chunks = self.vectors.search(text)
+        if not chunks:
+            return []
+        rows = {}
+        ids = [c for c, _ in chunks]
+        for i in range(0, len(ids), 500):
+            batch = ids[i:i + 500]
+            for r in self.db.execute(f"SELECT rowid, record_id, text FROM chunks WHERE rowid IN ({','.join('?' * len(batch))})", batch):
+                rows[r["rowid"]] = r
+        out: dict[str, Retrieved] = {}
+        for cid, sim in chunks:
+            r = rows.get(cid)
+            if r is None or r["record_id"] in out:
+                continue
+            t = " ".join(r["text"].split())
+            out[r["record_id"]] = Retrieved(r["record_id"], sim, t[:320] + (" …" if len(t) > 320 else ""))
+        return list(out.values())
 
     # 3. Reason over the knowledge layer ------------------------------------
     def counsel_evidence(self, hits: list[Retrieved], side: str | None) -> list[dict]:

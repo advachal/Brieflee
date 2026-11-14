@@ -47,7 +47,7 @@ class AskRequest(BaseModel):
 def health():
     n = kl.db.execute("SELECT count(*) FROM records").fetchone()[0]
     return {"ok": True, "records": n, "generation": generate.available(),
-            "document_analysis": llm.label() or "keywords", "source": kl.source}
+            "document_analysis": llm.label() or "keywords", "search_by_meaning": kl.vectors.info(), "source": kl.source}
 
 
 @app.post("/v1/extract")
