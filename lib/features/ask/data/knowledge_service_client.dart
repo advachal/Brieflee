@@ -37,13 +37,23 @@ class KnowledgeServiceClient {
   /// Sends an uploaded document's text for analysis: the service chunks it,
   /// finds its legal issues with Claude and links each issue to similar
   /// decisions in the knowledge layer. Returns null when unavailable.
-  Future<Map<String, dynamic>?> analyzeDocument(String text) async {
+  ///
+  /// [request] is the JSON body: {"text", optional "side" and "facts"}.
+  Future<Map<String, dynamic>?> analyzeDocument(String request) =>
+      _post('/v1/analyze', request);
+
+  /// Structured case facts read from the document by the AI (court, parties,
+  /// deciding judges, statutes, counsel, issues, stage). Null if unavailable.
+  Future<Map<String, dynamic>?> extractFacts(String text) =>
+      _post('/v1/extract', jsonEncode({'text': text}));
+
+  Future<Map<String, dynamic>?> _post(String path, String body) async {
     if (!configured) return null;
     final res = await _client
         .post(
-          Uri.parse('$_base/v1/analyze'),
+          Uri.parse('$_base$path'),
           headers: {'content-type': 'application/json'},
-          body: jsonEncode({'text': text}),
+          body: body,
         )
         .timeout(const Duration(seconds: 150));
     if (res.statusCode != 200) return null;

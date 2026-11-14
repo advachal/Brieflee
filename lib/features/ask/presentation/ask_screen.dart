@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -8,11 +9,14 @@ import 'package:material_ui/material_ui.dart';
 import '../../../app/router.dart';
 import '../../../app/theme/app_colors.dart';
 import '../../../core/public_records/ask_engine.dart';
+import '../../../core/public_records/case_type_subjects.dart';
+import '../../../core/public_records/matter_facts.dart';
 import '../../../core/public_records/public_records.dart';
 import '../../../core/widgets/common.dart';
 import '../../../core/widgets/status_badges.dart';
 import '../application/ask_providers.dart';
 import '../data/document_text.dart';
+import 'matter_facts_panel.dart';
 import 'record_widgets.dart';
 import '../../saved/application/saved_store.dart';
 
@@ -45,10 +49,27 @@ class _AskScreenState extends ConsumerState<AskScreen> {
   late String _query = widget.initialQuery?.trim() ?? '';
   SideChoice _side = SideChoice.auto;
 
+  /// Optional filters for typed questions.
+  String? _subjectFilter;
+  int? _benchFilter;
+
   /// An uploaded document, read on this device.
   ({String name, String text})? _doc;
   bool _reading = false;
   String? _docError;
+
+  /// Facts read from the document (on the device, then merged with the AI
+  /// reading when it arrives), and the facts the user confirmed.
+  MatterFacts? _facts;
+  bool _aiMerged = false;
+  MatterFacts? _confirmed;
+
+  void _clearDoc() {
+    _doc = null;
+    _facts = null;
+    _aiMerged = false;
+    _confirmed = null;
+  }
 
   @override
   void didUpdateWidget(covariant AskScreen old) {
@@ -78,7 +99,7 @@ class _AskScreenState extends ConsumerState<AskScreen> {
       if (q.isEmpty || q.length >= 3) {
         setState(() {
           _query = q;
-          _doc = null;
+          _clearDoc();
         });
       }
     });
@@ -89,7 +110,7 @@ class _AskScreenState extends ConsumerState<AskScreen> {
     if (text != null) _c.text = text;
     setState(() {
       _query = q;
-      _doc = null;
+      _clearDoc();
     });
     context.go(Routes.ask(q.isEmpty ? null : q));
   }
@@ -119,6 +140,7 @@ class _AskScreenState extends ConsumerState<AskScreen> {
         return;
       }
       setState(() {
+        _clearDoc();
         _doc = (name: file.name, text: text);
         _reading = false;
       });
@@ -202,6 +224,17 @@ class _AskScreenState extends ConsumerState<AskScreen> {
             ),
           ],
         ),
+        if (_doc == null)
+          Padding(
+            padding: const EdgeInsets.only(top: 12),
+            child: _Filters(
+              snapshot: engine.value?.snapshot,
+              subjectId: _subjectFilter,
+              benchJudgeId: _benchFilter,
+              onSubject: (v) => setState(() => _subjectFilter = v),
+              onBench: (v) => setState(() => _benchFilter = v),
+            ),
+          ),
         if (_docError != null)
           Padding(
             padding: const EdgeInsets.only(top: 10),
@@ -233,27 +266,7 @@ class _AskScreenState extends ConsumerState<AskScreen> {
             onRetry: () => ref.invalidate(publicRecordsProvider),
           ),
           data: (engine) {
-            if (_doc != null) {
-              final q = engine.documentQuery(_doc!.text);
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  _DocBanner(
-                    name: _doc!.name,
-                    chars: _doc!.text.length,
-                    onClear: () => setState(() => _doc = null),
-                  ),
-                  const SizedBox(height: 16),
-                  _ServiceAnalysis(text: _doc!.text, engine: engine),
-                  _Results(
-                    engine: engine,
-                    query: q,
-                    side: _side,
-                    fromDocument: true,
-                  ),
-                ],
-              );
-            }
+            if (_doc != null) return _documentFlow(engine);
             if (_query.isEmpty) return _Coverage(snapshot: engine.snapshot);
             final saved = ref.watch(savedProvider).searches.contains(_query);
             return Column(
@@ -271,11 +284,217 @@ class _AskScreenState extends ConsumerState<AskScreen> {
                     label: Text(saved ? 'Saved' : 'Save search'),
                   ),
                 ),
-                _Results(engine: engine, query: _query, side: _side),
+                _Results(
+                  engine: engine,
+                  query: _query,
+                  side: _side,
+                  subjectId: _subjectFilter,
+                  benchJudgeId: _benchFilter,
+                ),
               ],
             );
           },
         ),
+      ],
+    );
+  }
+
+  /// Upload → check the facts → recommend.
+  Widget _documentFlow(AskEngine engine) {
+    final text = _doc!.text;
+    final service = ref.watch(knowledgeServiceProvider).configured;
+    _facts ??= FactExtractor(engine.snapshot).extract(text);
+    String? status;
+    if (service) {
+      final ai = ref.watch(documentFactsProvider(text));
+      if (ai.isLoading) {
+        status = 'The AI is reading the whole document; the fields below may fill in further when it finishes.';
+      } else if (ai.value != null) {
+        if (!_aiMerged) {
+          final merged = _facts!.copy();
+          mergeAiFacts(merged, ai.value!, engine.snapshot);
+          _facts = merged;
+          _aiMerged = true;
+        }
+      } else {
+        status = 'The AI reading is not available right now; these facts were read on this device.';
+      }
+    }
+    final banner = _DocBanner(
+      name: _doc!.name,
+      chars: text.length,
+      service: service,
+      onClear: () => setState(_clearDoc),
+    );
+    final confirmed = _confirmed;
+    if (confirmed == null) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          banner,
+          const SizedBox(height: 16),
+          MatterFactsPanel(
+            facts: _facts!,
+            snapshot: engine.snapshot,
+            aiStatus: status,
+            onConfirm: (f) => setState(() => _confirmed = f),
+          ),
+        ],
+      );
+    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        banner,
+        const SizedBox(height: 16),
+        _ConfirmedFacts(
+          facts: confirmed,
+          snapshot: engine.snapshot,
+          onEdit: () => setState(() {
+            _facts = confirmed;
+            _confirmed = null;
+          }),
+        ),
+        const SizedBox(height: 16),
+        _ServiceAnalysis(
+          request: jsonEncode({
+            'text': text,
+            if (confirmed.side != null)
+              'side': confirmed.side == RecordSide.petitioner ? 'p' : 'r',
+            'facts': {
+              'issues': confirmed.issues,
+              'statutes': confirmed.statutes,
+              'summary': confirmed.summary,
+              'subject': confirmed.subject?.label,
+            },
+          }),
+          engine: engine,
+        ),
+        _Results(engine: engine, query: '', facts: confirmed),
+      ],
+    );
+  }
+}
+
+/// A one-card summary of the facts the search used, with a way back.
+class _ConfirmedFacts extends StatelessWidget {
+  const _ConfirmedFacts({
+    required this.facts,
+    required this.snapshot,
+    required this.onEdit,
+  });
+  final MatterFacts facts;
+  final PublicRecordsSnapshot snapshot;
+  final VoidCallback onEdit;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = Theme.of(context).textTheme;
+    final f = facts;
+    final parts = [
+      if (f.caseNumber != null && f.caseNumber!.isNotEmpty) f.caseNumber!,
+      if (f.subject != null) f.subject!.label,
+      if (f.side != null)
+        'for the ${f.side == RecordSide.petitioner ? 'petitioner' : 'respondent'}',
+      if (f.stage != MatterStage.unknown) f.stage.label,
+      if (f.benchJudgeId != null) 'before ${snapshot.judges[f.benchJudgeId!]}',
+    ];
+    return Container(
+      padding: const EdgeInsets.fromLTRB(18, 14, 8, 14),
+      decoration: BoxDecoration(
+        border: Border.all(color: AppColors.border),
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'SEARCHED WITH THE FACTS YOU CONFIRMED',
+                  style: t.labelSmall?.copyWith(
+                    color: AppColors.gold,
+                    letterSpacing: 1.5,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  parts.join(' · '),
+                  style: t.titleMedium?.copyWith(color: AppColors.navy),
+                ),
+                if (f.issues.isNotEmpty || f.statutes.isNotEmpty) ...[
+                  const SizedBox(height: 6),
+                  Text(
+                    [...f.issues, ...f.statutes].join(' · '),
+                    style: t.bodySmall?.copyWith(color: AppColors.muted),
+                  ),
+                ],
+              ],
+            ),
+          ),
+          TextButton.icon(
+            onPressed: onEdit,
+            icon: const Icon(Icons.edit_outlined, size: 18),
+            label: const Text('Edit facts'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Optional filters: nothing is required, the question alone is enough.
+class _Filters extends StatelessWidget {
+  const _Filters({
+    required this.snapshot,
+    required this.subjectId,
+    required this.benchJudgeId,
+    required this.onSubject,
+    required this.onBench,
+  });
+  final PublicRecordsSnapshot? snapshot;
+  final String? subjectId;
+  final int? benchJudgeId;
+  final ValueChanged<String?> onSubject;
+  final ValueChanged<int?> onBench;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = Theme.of(context).textTheme;
+    return Wrap(
+      spacing: 16,
+      runSpacing: 10,
+      crossAxisAlignment: WrapCrossAlignment.center,
+      children: [
+        Text('Optional:', style: t.bodySmall?.copyWith(color: AppColors.muted)),
+        SizedBox(
+          width: 280,
+          child: DropdownButtonFormField<String?>(
+            initialValue: subjectId,
+            isExpanded: true,
+            decoration: const InputDecoration(
+              isDense: true,
+              labelText: 'Case type',
+            ),
+            items: [
+              const DropdownMenuItem(
+                value: null,
+                child: Text('From my question'),
+              ),
+              for (final a in subjectAreas)
+                DropdownMenuItem(value: a.id, child: Text(a.label)),
+            ],
+            onChanged: onSubject,
+          ),
+        ),
+        if (snapshot != null)
+          JudgePicker(
+            snapshot: snapshot!,
+            selected: benchJudgeId,
+            onChanged: onBench,
+          ),
       ],
     );
   }
@@ -446,10 +665,12 @@ class _DocBanner extends StatelessWidget {
   const _DocBanner({
     required this.name,
     required this.chars,
+    required this.service,
     required this.onClear,
   });
   final String name;
   final int chars;
+  final bool service;
   final VoidCallback onClear;
 
   @override
@@ -474,8 +695,10 @@ class _DocBanner extends StatelessWidget {
                   style: t.titleMedium?.copyWith(color: AppColors.navy),
                 ),
                 Text(
-                  'Read on this device (${fmtInt(chars)} characters, not uploaded anywhere). Matched on its '
-                  'statutes and most distinctive terms; names of parties, judges and counsel in it are not used.',
+                  service
+                      ? 'Read on this device (${fmtInt(chars)} characters). The text is also sent to the Brieflee '
+                            'service for the AI reading; it is processed in memory and not stored.'
+                      : 'Read on this device (${fmtInt(chars)} characters, not uploaded anywhere).',
                   style: t.bodySmall?.copyWith(color: AppColors.muted),
                 ),
               ],
@@ -497,24 +720,40 @@ class _Results extends ConsumerWidget {
     required this.engine,
     required this.query,
     this.side = SideChoice.auto,
-    this.fromDocument = false,
+    this.subjectId,
+    this.benchJudgeId,
+    this.facts,
   });
   final AskEngine engine;
   final String query;
   final SideChoice side;
-  final bool fromDocument;
+  final String? subjectId;
+  final int? benchJudgeId;
+
+  /// Confirmed facts from an uploaded document; used instead of [query].
+  final MatterFacts? facts;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final answer = engine.ask(query, side: side);
+    final answer = facts != null
+        ? engine.askFacts(facts!)
+        : engine.ask(
+            query,
+            side: side,
+            subjectId: subjectId,
+            benchJudgeId: benchJudgeId,
+          );
     final snapshot = engine.snapshot;
     final wide = MediaQuery.sizeOf(context).width >= 1100;
-    final generated = ref.watch(generatedAnswerProvider(query));
+    // The document's AI reading already carries a grounded answer.
+    final generated = facts != null
+        ? null
+        : ref.watch(generatedAnswerProvider(query)).value;
 
     final left = Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _AnswerCard(answer: answer, generated: generated.value),
+        _AnswerCard(answer: answer, generated: generated),
         const SizedBox(height: 28),
         _CounselSection(answer: answer, snapshot: snapshot),
         const SizedBox(height: 28),
@@ -673,14 +912,33 @@ class _AnswerCard extends StatelessWidget {
   }
 }
 
-class _CounselSection extends StatelessWidget {
+class _CounselSection extends StatefulWidget {
   const _CounselSection({required this.answer, required this.snapshot});
   final AskAnswer answer;
   final PublicRecordsSnapshot snapshot;
 
   @override
+  State<_CounselSection> createState() => _CounselSectionState();
+}
+
+class _CounselSectionState extends State<_CounselSection> {
+  final Set<int> _compare = {};
+
+  @override
+  void didUpdateWidget(covariant _CounselSection old) {
+    super.didUpdateWidget(old);
+    if (!identical(old.answer, widget.answer)) _compare.clear();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final t = Theme.of(context).textTheme;
+    final answer = widget.answer;
+    final snapshot = widget.snapshot;
+    final chosen = [
+      for (final e in answer.counsel)
+        if (_compare.contains(e.counselId)) e,
+    ];
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -690,13 +948,40 @@ class _CounselSection extends StatelessWidget {
         ),
         const SizedBox(height: 6),
         Text(
-          'Ranked on decided outcomes in the similar decisions (favourable rate smoothed toward 50%), how many similar '
-          'matters they handled, and whether they acted for your side. At least ${AskEngine.minEligible} decided '
-          'outcomes, at least one win and a favourable rate of 50% or more are needed to be listed here. Government panel counsel are left out. This is evidence, not an '
-          'endorsement or a prediction.',
+          'Ranked by a match score out of 100 built from decided outcomes in the similar decisions (favourable rate '
+          'smoothed toward 50%), how close those matters are to yours, whether they acted for your side'
+          '${answer.benchJudgeId != null ? ' and how often they appeared before your bench' : ''}. '
+          'Open "Why this advocate" for the parts. At least ${AskEngine.minEligible} decided outcomes, at least one '
+          'win and a favourable rate of 50% or more are needed to be listed. Government panel counsel are left out. '
+          'This is evidence from past judgments, not a win probability, an endorsement or a prediction.',
           style: t.bodySmall?.copyWith(color: AppColors.muted, height: 1.45),
         ),
         const SizedBox(height: 10),
+        if (answer.counsel.length > 1)
+          Wrap(
+            spacing: 12,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              Text(
+                chosen.length < 2
+                    ? 'Tick two to four advocates to compare them.'
+                    : '${chosen.length} selected.',
+                style: t.bodySmall?.copyWith(color: AppColors.muted),
+              ),
+              FilledButton.tonalIcon(
+                onPressed: chosen.length < 2
+                    ? null
+                    : () => showCounselComparison(
+                        context,
+                        answer: answer,
+                        counsel: chosen,
+                        snapshot: snapshot,
+                      ),
+                icon: const Icon(Icons.compare_arrows, size: 18),
+                label: const Text('Compare'),
+              ),
+            ],
+          ),
         if (answer.counsel.isEmpty)
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 16),
@@ -707,7 +992,21 @@ class _CounselSection extends StatelessWidget {
           ),
         for (var i = 0; i < answer.counsel.length; i++) ...[
           const Divider(height: 1),
-          _CounselRow(rank: i + 1, e: answer.counsel[i], snapshot: snapshot),
+          _CounselRow(
+            rank: i + 1,
+            e: answer.counsel[i],
+            snapshot: snapshot,
+            benchJudgeId: answer.benchJudgeId,
+            selected: _compare.contains(answer.counsel[i].counselId),
+            onSelect: (v) => setState(() {
+              final id = answer.counsel[i].counselId;
+              if (v && _compare.length < 4) {
+                _compare.add(id);
+              } else {
+                _compare.remove(id);
+              }
+            }),
+          ),
         ],
         if (answer.insufficient.isNotEmpty) ...[
           const SizedBox(height: 20),
@@ -739,19 +1038,42 @@ class _CounselSection extends StatelessWidget {
   }
 }
 
-class _CounselRow extends StatelessWidget {
+class _CounselRow extends StatefulWidget {
   const _CounselRow({
     required this.rank,
     required this.e,
     required this.snapshot,
+    required this.selected,
+    required this.onSelect,
+    this.benchJudgeId,
   });
   final int rank;
   final CounselEvidence e;
   final PublicRecordsSnapshot snapshot;
+  final bool selected;
+  final ValueChanged<bool> onSelect;
+  final int? benchJudgeId;
+
+  @override
+  State<_CounselRow> createState() => _CounselRowState();
+}
+
+class _CounselRowState extends State<_CounselRow> {
+  bool _why = false;
 
   @override
   Widget build(BuildContext context) {
     final t = Theme.of(context).textTheme;
+    final e = widget.e;
+    final snapshot = widget.snapshot;
+    void sheet(String what, List<int> idx, {String? note}) => showRecordsSheet(
+      context,
+      snapshot: snapshot,
+      title: '${e.name}: $what',
+      note: note,
+      recordIndexes: idx,
+      forCounsel: e.counselId,
+    );
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 16),
       child: Row(
@@ -759,9 +1081,18 @@ class _CounselRow extends StatelessWidget {
         children: [
           SizedBox(
             width: 34,
-            child: Text(
-              '$rank',
-              style: t.headlineSmall?.copyWith(color: AppColors.gold),
+            child: Column(
+              children: [
+                Text(
+                  '${widget.rank}',
+                  style: t.headlineSmall?.copyWith(color: AppColors.gold),
+                ),
+                Checkbox(
+                  visualDensity: VisualDensity.compact,
+                  value: widget.selected,
+                  onChanged: (v) => widget.onSelect(v ?? false),
+                ),
+              ],
             ),
           ),
           Expanded(
@@ -781,7 +1112,8 @@ class _CounselRow extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Acted for petitioners ${e.petitionerSide}×, respondents ${e.respondentSide}× in these matters',
+                  'Acted for petitioners ${e.petitionerSide}×, respondents ${e.respondentSide}× in these matters'
+                  '${widget.benchJudgeId != null ? ' · ${e.benchAppearances} appearances before ${snapshot.judges[widget.benchJudgeId!]}' : ''}',
                   style: t.bodySmall?.copyWith(color: AppColors.muted),
                 ),
                 const SizedBox(height: 8),
@@ -793,59 +1125,265 @@ class _CounselRow extends StatelessWidget {
                       value: '${e.favourable.length}',
                       label: 'favourable',
                       color: AppColors.favorable,
-                      onTap: () => showRecordsSheet(
-                        context,
-                        snapshot: snapshot,
-                        title: '${e.name}: favourable outcomes',
-                        recordIndexes: e.favourable,
-                        forCounsel: e.counselId,
-                      ),
+                      onTap: () => sheet('favourable outcomes', e.favourable),
                     ),
                     EvidenceNumber(
                       value: '${e.unfavourable.length}',
                       label: 'unfavourable',
                       color: AppColors.unfavorable,
-                      onTap: () => showRecordsSheet(
-                        context,
-                        snapshot: snapshot,
-                        title: '${e.name}: unfavourable outcomes',
-                        recordIndexes: e.unfavourable,
-                        forCounsel: e.counselId,
+                      onTap: () =>
+                          sheet('unfavourable outcomes', e.unfavourable),
+                    ),
+                    EvidenceNumber(
+                      value: '${e.notEligible.length}',
+                      label: 'not counted',
+                      onTap: () => sheet(
+                        'not counted as outcomes',
+                        e.notEligible,
+                        note: 'Settled, withdrawn, interim, mixed or unclear outcomes. They are shown but not counted.',
                       ),
                     ),
                     EvidenceNumber(
                       value: '${e.similar.length}',
                       label: 'similar matters',
-                      onTap: () => showRecordsSheet(
-                        context,
-                        snapshot: snapshot,
-                        title: '${e.name}: similar matters',
-                        note: 'Includes settled, withdrawn and interim orders, which are not counted as outcomes.',
-                        recordIndexes: e.similar,
-                        forCounsel: e.counselId,
-                      ),
-                    ),
-                    EvidenceNumber(
-                      value: '${(e.smoothedRate * 100).round()}%',
-                      label: 'smoothed favourable rate',
+                      onTap: () => sheet('similar matters', e.similar),
                     ),
                   ],
                 ),
+                const SizedBox(height: 6),
+                TextButton.icon(
+                  style: TextButton.styleFrom(padding: EdgeInsets.zero),
+                  onPressed: () => setState(() => _why = !_why),
+                  icon: Icon(
+                    _why ? Icons.expand_less : Icons.expand_more,
+                    size: 18,
+                  ),
+                  label: const Text('Why this advocate'),
+                ),
+                if (_why) _WhyBreakdown(e: e, bench: widget.benchJudgeId),
               ],
             ),
           ),
           SizedBox(
-            width: 52,
-            child: Text(
-              e.score.round().toString(),
-              textAlign: TextAlign.right,
-              style: t.headlineMedium?.copyWith(color: AppColors.navy),
+            width: 76,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Text(
+                  e.score.round().toString(),
+                  style: t.headlineMedium?.copyWith(color: AppColors.navy),
+                ),
+                Text(
+                  'match score',
+                  style: t.labelSmall?.copyWith(color: AppColors.muted),
+                ),
+                const SizedBox(height: 6),
+                _ConfidenceTag(e.confidence),
+              ],
             ),
           ),
         ],
       ),
     );
   }
+}
+
+class _ConfidenceTag extends StatelessWidget {
+  const _ConfidenceTag(this.level);
+  final String level;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = switch (level) {
+      'High' => AppColors.favorable,
+      'Medium' => AppColors.gold,
+      _ => AppColors.muted,
+    };
+    return Tooltip(
+      message:
+          'Evidence confidence: how many decided outcomes the score rests on '
+          '(High 15+, Medium 6+, Low fewer). Separate from the match score.',
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+        decoration: BoxDecoration(
+          border: Border.all(color: color),
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Text(
+          '$level evidence',
+          style: Theme.of(context).textTheme.labelSmall?.copyWith(color: color),
+        ),
+      ),
+    );
+  }
+}
+
+/// The parts of the match score, each already weighted.
+class _WhyBreakdown extends StatelessWidget {
+  const _WhyBreakdown({required this.e, this.bench});
+  final CounselEvidence e;
+  final int? bench;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = Theme.of(context).textTheme;
+    final rows = [
+      (
+        'Outcomes',
+        e.rateComponent,
+        bench == null ? 45.0 : 40.0,
+        '${e.favourable.length} favourable of ${e.eligible} decided; ${(e.smoothedRate * 100).round()}% after smoothing toward 50%',
+      ),
+      (
+        'Similarity',
+        e.relevanceComponent,
+        bench == null ? 35.0 : 30.0,
+        'How closely their ${e.similar.length} matters match yours',
+      ),
+      (
+        'Your side',
+        e.sideComponent,
+        bench == null ? 20.0 : 15.0,
+        'Share of these matters where they acted for your side',
+      ),
+      if (bench != null)
+        (
+          'Your bench',
+          e.benchComponent,
+          15.0,
+          '${e.benchAppearances} appearances before this judge in all records (full marks at 5)',
+        ),
+    ];
+    return Container(
+      margin: const EdgeInsets.only(top: 4, bottom: 4),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: AppColors.tealSoft,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          for (final (name, value, max, note) in rows) ...[
+            Row(
+              children: [
+                SizedBox(width: 92, child: Text(name, style: t.labelLarge)),
+                Expanded(
+                  child: LinearProgressIndicator(
+                    value: max == 0 ? 0 : (value / max).clamp(0, 1),
+                    minHeight: 6,
+                    color: AppColors.teal,
+                    backgroundColor: Colors.white,
+                    borderRadius: BorderRadius.circular(3),
+                  ),
+                ),
+                SizedBox(
+                  width: 70,
+                  child: Text(
+                    '${value.toStringAsFixed(1)} / ${max.round()}',
+                    textAlign: TextAlign.right,
+                    style: t.labelMedium,
+                  ),
+                ),
+              ],
+            ),
+            Padding(
+              padding: const EdgeInsets.only(left: 92, bottom: 8, top: 2),
+              child: Text(
+                note,
+                style: t.bodySmall?.copyWith(color: AppColors.muted),
+              ),
+            ),
+          ],
+          Text(
+            'Match score ${e.score.round()} = the parts above. Every count links to the judgments behind it.',
+            style: t.bodySmall?.copyWith(color: AppColors.muted),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Side-by-side comparison of two to four advocates for this matter.
+void showCounselComparison(
+  BuildContext context, {
+  required AskAnswer answer,
+  required List<CounselEvidence> counsel,
+  required PublicRecordsSnapshot snapshot,
+}) {
+  final bench = answer.benchJudgeId;
+  final rows = <(String, String Function(CounselEvidence))>[
+    ('Match score', (e) => '${e.score.round()}'),
+    ('Evidence confidence', (e) => e.confidence),
+    ('Favourable', (e) => '${e.favourable.length}'),
+    ('Unfavourable', (e) => '${e.unfavourable.length}'),
+    ('Not counted', (e) => '${e.notEligible.length}'),
+    ('Similar matters', (e) => '${e.similar.length}'),
+    ('Smoothed favourable rate', (e) => '${(e.smoothedRate * 100).round()}%'),
+    (
+      'For petitioner / respondent',
+      (e) => '${e.petitionerSide} / ${e.respondentSide}',
+    ),
+    if (bench != null)
+      ('Before ${snapshot.judges[bench]}', (e) => '${e.benchAppearances}'),
+  ];
+  showDialog<void>(
+    context: context,
+    builder: (context) {
+      final t = Theme.of(context).textTheme;
+      return AlertDialog(
+        title: const Text('Compare advocates'),
+        content: SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: SingleChildScrollView(
+            child: DataTable(
+              columnSpacing: 24,
+              columns: [
+                const DataColumn(label: Text('')),
+                for (final e in counsel)
+                  DataColumn(
+                    label: InkWell(
+                      onTap: () {
+                        Navigator.of(context).pop();
+                        context.go(Routes.recordCounsel(e.counselId));
+                      },
+                      child: Text(
+                        e.name,
+                        style: t.titleSmall?.copyWith(
+                          color: AppColors.navy,
+                          decoration: TextDecoration.underline,
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+              rows: [
+                for (final (label, value) in rows)
+                  DataRow(
+                    cells: [
+                      DataCell(
+                        Text(
+                          label,
+                          style: t.bodySmall?.copyWith(color: AppColors.muted),
+                        ),
+                      ),
+                      for (final e in counsel) DataCell(Text(value(e))),
+                    ],
+                  ),
+              ],
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Close'),
+          ),
+        ],
+      );
+    },
+  );
 }
 
 class _JudgesSection extends StatelessWidget {
@@ -946,8 +1484,10 @@ class _DecisionsSectionState extends State<_DecisionsSection> {
 /// Issues found in an uploaded document by the knowledge service (Claude),
 /// each linked to similar decisions. Shown only when the service is connected.
 class _ServiceAnalysis extends ConsumerWidget {
-  const _ServiceAnalysis({required this.text, required this.engine});
-  final String text;
+  const _ServiceAnalysis({required this.request, required this.engine});
+
+  /// The JSON request body for /v1/analyze.
+  final String request;
   final AskEngine engine;
 
   @override
@@ -956,7 +1496,7 @@ class _ServiceAnalysis extends ConsumerWidget {
       return const SizedBox.shrink();
     }
     final t = Theme.of(context).textTheme;
-    final a = ref.watch(documentAnalysisProvider(text));
+    final a = ref.watch(documentAnalysisProvider(request));
     return Padding(
       padding: const EdgeInsets.only(bottom: 20),
       child: SectionCard(

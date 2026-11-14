@@ -28,8 +28,13 @@ app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["GET", "P
 
 
 class AnalyzeRequest(BaseModel):
-    text: str
+    text: str = ""
     side: str | None = None  # "p" or "r"; inferred from the document when omitted
+    facts: dict | None = None  # user-confirmed {"issues", "statutes", "summary", "subject"}
+
+
+class ExtractRequest(BaseModel):
+    text: str
 
 
 class AskRequest(BaseModel):
@@ -45,13 +50,29 @@ def health():
             "document_analysis": llm.label() or "keywords", "source": kl.source}
 
 
-@app.post("/v1/analyze")
-def analyze(req: AnalyzeRequest):
-    """Chunk an uploaded document, find its issues and link them to the knowledge layer."""
+@app.post("/v1/extract")
+def extract(req: ExtractRequest):
+    """Case facts from an uploaded document, for the user to check before searching."""
     if len(req.text.strip()) < 200:
         raise HTTPException(422, "Not enough text in the document.")
     try:
-        return analysis.analyze(kl, req.text, req.side)
+        facts = analysis.extract_facts(req.text)
+    except ValueError as e:
+        raise HTTPException(413, str(e))
+    except Exception as e:
+        raise HTTPException(500, f"Extraction failed: {type(e).__name__}: {e}")
+    if facts is None:
+        raise HTTPException(503, "No AI provider is configured on the server.")
+    return facts
+
+
+@app.post("/v1/analyze")
+def analyze(req: AnalyzeRequest):
+    """Chunk an uploaded document, find its issues and link them to the knowledge layer."""
+    if len(req.text.strip()) < 200 and not (req.facts and req.facts.get("issues")):
+        raise HTTPException(422, "Not enough text in the document.")
+    try:
+        return analysis.analyze(kl, req.text, req.side, confirmed=req.facts)
     except ValueError as e:
         raise HTTPException(413, str(e))
     except Exception as e:  # report instead of dropping the connection

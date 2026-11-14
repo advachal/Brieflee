@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'case_type_subjects.dart';
 import 'knowledge.dart';
+import 'matter_facts.dart';
 import 'public_records.dart';
 
 /// How a question was read. Shown to the user so they can see (and correct)
@@ -70,6 +71,22 @@ class CounselEvidence {
   double smoothedRate = 0.5;
   double score = 0;
 
+  /// Score parts, each already weighted (they add up to [score]).
+  double rateComponent = 0;
+  double relevanceComponent = 0;
+  double sideComponent = 0;
+  double benchComponent = 0;
+
+  /// Appearances before the judge the matter is listed before (all records).
+  int benchAppearances = 0;
+
+  /// How much decided-outcome evidence there is, separate from the score.
+  String get confidence => eligible >= 15
+      ? 'High'
+      : eligible >= 6
+      ? 'Medium'
+      : 'Low';
+
   int get eligible => favourable.length + unfavourable.length;
   bool get sufficient => eligible >= AskEngine.minEligible;
 
@@ -97,7 +114,11 @@ class AskAnswer {
     required this.withOutcomeText,
     required this.summary,
     this.generated,
+    this.benchJudgeId,
   });
+
+  /// The judge used for the bench-experience signal, if any.
+  final int? benchJudgeId;
 
   final String question;
   final AskInterpretation interpretation;
@@ -440,10 +461,18 @@ class AskEngine {
 
   /// Answers a typed question. [side] (the side the user acts for) overrides
   /// whatever the question implies; [SideChoice.auto] keeps the inference.
-  AskAnswer ask(String question, {SideChoice side = SideChoice.auto}) {
-    final key = '${side.name}|$question';
+  ///
+  /// Optional filters: [subjectId] fixes the case type instead of inferring
+  /// it; [benchJudgeId] adds the bench-experience signal to the score.
+  AskAnswer ask(
+    String question, {
+    SideChoice side = SideChoice.auto,
+    String? subjectId,
+    int? benchJudgeId,
+  }) {
+    final key = '${side.name}|$subjectId|$benchJudgeId|$question';
     if (key == _lastQuestion && _lastAnswer != null) return _lastAnswer!;
-    final a = _ask(question, side);
+    final a = _ask(question, side, subjectId, benchJudgeId);
     _lastQuestion = key;
     _lastAnswer = a;
     return a;
@@ -496,12 +525,20 @@ class AskEngine {
     ].join(' ');
   }
 
-  AskAnswer _ask(String question, SideChoice sideChoice) {
+  AskAnswer _ask(
+    String question,
+    SideChoice sideChoice,
+    String? subjectId,
+    int? benchJudgeId,
+  ) {
     final parsed = interpret(question);
-    final it = sideChoice == SideChoice.auto
+    final subject = subjectId == null
+        ? null
+        : subjectAreas.where((s) => s.id == subjectId).firstOrNull;
+    final it = sideChoice == SideChoice.auto && subject == null
         ? parsed
         : AskInterpretation(
-            subjects: parsed.subjects,
+            subjects: subject == null ? parsed.subjects : [subject],
             sections: parsed.sections,
             judgeIds: parsed.judgeIds,
             counselIds: parsed.counselIds,
@@ -509,12 +546,54 @@ class AskEngine {
             caseNumber: parsed.caseNumber,
             terms: parsed.terms,
             side: switch (sideChoice) {
+              SideChoice.auto => parsed.side,
               SideChoice.petitioner => RecordSide.petitioner,
               SideChoice.respondent => RecordSide.respondent,
-              _ => null,
+              SideChoice.either => null,
             },
             courts: parsed.courts,
           );
+    return _run(question, it, benchJudgeId: benchJudgeId);
+  }
+
+  /// Recommends counsel for confirmed matter facts (from an uploaded document
+  /// the user has checked). The bench judge is a scoring signal only.
+  AskAnswer askFacts(MatterFacts f) {
+    final words = [
+      ...f.issues,
+      for (final st in f.statutes) st.replaceFirst(RegExp(r'^s\.\w+\s'), ''),
+    ].join(' ');
+    final subjectWords = {
+      for (final s in f.subject == null ? const <SubjectArea>[] : [f.subject!])
+        ...s.keywords.expand((k) => k.split(' ')),
+    };
+    final terms = _tokens(words.toLowerCase())
+        .where((t) => !subjectWords.contains(t) && !RegExp(r'^\d').hasMatch(t))
+        .toSet()
+        .take(30)
+        .toList();
+    final it = AskInterpretation(
+      subjects: f.subject == null ? const [] : [f.subject!],
+      sections: f.sections,
+      judgeIds: const [],
+      counselIds: const [],
+      years: const [],
+      caseNumber: null,
+      terms: terms,
+      side: f.side,
+    );
+    final label = [
+      if (f.subject != null) f.subject!.label,
+      ...f.issues.take(2),
+    ].join(': ');
+    return _run(
+      label.isEmpty ? 'Your matter' : label,
+      it,
+      benchJudgeId: f.benchJudgeId,
+    );
+  }
+
+  AskAnswer _run(String question, AskInterpretation it, {int? benchJudgeId}) {
     final n = snapshot.records.length;
 
     // Candidate set from hard filters.
@@ -651,8 +730,29 @@ class AskEngine {
                     : e.respondentSide) /
                 math.max(1, e.petitionerSide + e.respondentSide);
       final relevance = math.min(e.similar.length / 10.0, 1.0);
+      if (benchJudgeId != null) {
+        final judgeRecords = {
+          for (final r in snapshot.recordsForJudge(benchJudgeId)) r.index,
+        };
+        e.benchAppearances = snapshot
+            .recordsForCounsel(e.counselId)
+            .where((r) => judgeRecords.contains(r.index))
+            .length;
+        final bench = math.min(e.benchAppearances / 5.0, 1.0);
+        e.rateComponent = 100 * 0.40 * e.smoothedRate;
+        e.relevanceComponent = 100 * 0.30 * relevance;
+        e.sideComponent = 100 * 0.15 * sideFit;
+        e.benchComponent = 100 * 0.15 * bench;
+      } else {
+        e.rateComponent = 100 * 0.45 * e.smoothedRate;
+        e.relevanceComponent = 100 * 0.35 * relevance;
+        e.sideComponent = 100 * 0.20 * sideFit;
+      }
       e.score =
-          100 * (0.45 * e.smoothedRate + 0.35 * relevance + 0.20 * sideFit);
+          e.rateComponent +
+          e.relevanceComponent +
+          e.sideComponent +
+          e.benchComponent;
     }
     final all = ev.values.toList()
       ..sort((a, b) {
@@ -686,6 +786,7 @@ class AskEngine {
       judges: judges.take(8).toList(),
       withOutcomeText: withText,
       summary: _summary(it, total, hits, ranked, judges, withText, fellBack),
+      benchJudgeId: benchJudgeId,
     );
   }
 

@@ -67,6 +67,69 @@ SYSTEM = (
 )
 
 
+FACTS_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "court": {"type": "string"},
+        "case_number": {"type": "string"},
+        "petitioners": {"type": "array", "items": {"type": "string"}},
+        "respondents": {"type": "array", "items": {"type": "string"}},
+        "deciding_judges": {"type": "array", "items": {"type": "string"}},
+        "document_type": {"type": "string", "enum": ["judgment", "order", "petition", "plaint", "written_statement", "appeal", "application", "other"]},
+        "case_category": {"type": "string"},
+        "procedural_stage": {"type": "string", "enum": ["about_to_file", "pending_interim", "pending_final_hearing", "decided_appeal_possible", "execution", "unclear"]},
+        "client_side": {"type": "string", "enum": ["petitioner", "respondent", "unclear"]},
+        "relief_sought": {"type": "string"},
+        "statutes": {"type": "array", "items": {"type": "string"}},
+        "counsel": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "name": {"type": "string"},
+                    "side": {"type": "string", "enum": ["petitioner", "respondent"]},
+                    "role": {"type": "string", "enum": ["senior_advocate", "advocate", "government_counsel"]},
+                },
+                "required": ["name", "side", "role"],
+                "additionalProperties": False,
+            },
+        },
+        "issues": {"type": "array", "items": {"type": "string"}},
+        "summary": {"type": "string"},
+    },
+    "required": ["court", "case_number", "petitioners", "respondents", "deciding_judges", "document_type",
+                 "case_category", "procedural_stage", "client_side", "relief_sought", "statutes", "counsel",
+                 "issues", "summary"],
+    "additionalProperties": False,
+}
+
+FACTS_SYSTEM = (
+    "You extract case facts from Indian court documents for a counsel-discovery product. Use only what the document "
+    "states; use an empty string or empty list when something is not stated, never a guess. "
+    "deciding_judges are the judges who decided THIS document (the CORAM or signature), not the judge the matter may be "
+    "listed before next. Write statutes as 's.<number> <Act name, year>' for sections (e.g. 's.34 Arbitration and "
+    "Conciliation Act, 1996') or the Act name alone. counsel are the advocates named for each side, without honorifics. "
+    "issues are 2 to 6 legal questions the matter turns on, each a short plain-language phrase with the key terms a "
+    "similar judgment would contain. case_category is a short label such as 'Arbitration: setting aside an award'. "
+    "procedural_stage describes where the matter stands after this document: a final judgment or order means "
+    "'decided_appeal_possible'. client_side is the side the uploader most likely acts for; 'unclear' if not evident. "
+    "summary is two or three plain sentences."
+)
+
+
+def extract_facts(text: str) -> dict | None:
+    """Structured case facts from the whole document (LLM), or None."""
+    text = text.strip()
+    if len(text) > MAX_CHARS:
+        raise ValueError(f"Document is {len(text):,} characters; the limit is {MAX_CHARS:,}.")
+    if not llm.available():
+        return None
+    facts = llm.complete_json(FACTS_SYSTEM, f"<document>\n{text}\n</document>\n\nExtract the case facts as JSON.", FACTS_SCHEMA)
+    if facts is not None:
+        facts["provider"] = llm.label()
+    return facts
+
+
 def chunk_document(text: str) -> list[str]:
     """Overlapping passages of about CHUNK_CHARS, split on paragraph breaks."""
     paras = [p.strip() for p in re.split(r"\n\s*\n|\n(?=\s*\d+\.\s)", text) if p.strip()]
@@ -121,15 +184,25 @@ def _keyword_issues(chunks: list[str], limit: int = 8) -> dict:
     return {"summary": None, "document_type": None, "client_side": "unclear", "subject": None, "issues": issues}
 
 
-def analyze(kl: KnowledgeLayer, text: str, side: str | None = None, per_issue: int = 60) -> dict:
+def analyze(kl: KnowledgeLayer, text: str, side: str | None = None, per_issue: int = 60,
+            confirmed: dict | None = None) -> dict:
+    """confirmed: facts the user checked ({"issues": [...], "statutes": [...],
+    "summary": str}); when given, they drive the search instead of a new reading."""
     text = text.strip()
     if len(text) > MAX_CHARS:
         raise ValueError(f"Document is {len(text):,} characters; the limit is {MAX_CHARS:,}. Upload the main judgment or pleading only.")
-    chunks = chunk_document(text)
-    plan = _llm_issues(chunks)
-    method = (llm.provider() or "keywords") if plan else "keywords"
-    if plan is None:
-        plan = _keyword_issues(chunks)
+    chunks = chunk_document(text) if text else []
+    if confirmed and confirmed.get("issues"):
+        statutes = confirmed.get("statutes") or []
+        plan = {"summary": confirmed.get("summary"), "document_type": None, "client_side": "unclear",
+                "subject": confirmed.get("subject"),
+                "issues": [{"title": i, "search_query": i, "statutes": statutes, "chunks": []} for i in confirmed["issues"]]}
+        method = "confirmed"
+    else:
+        plan = _llm_issues(chunks)
+        method = (llm.provider() or "keywords") if plan else "keywords"
+        if plan is None:
+            plan = _keyword_issues(chunks)
     if side is None and plan.get("client_side") in ("petitioner", "respondent"):
         side = plan["client_side"][0]
 

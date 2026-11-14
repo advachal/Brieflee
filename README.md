@@ -47,6 +47,18 @@ require ≥3 decided outcomes to rank, weight by similarity and side fit →
 a factual answer built from those numbers. Every number opens the decisions
 behind it; every decision links to its official PDF.
 
+**Upload a judgment → check the facts → recommend** (`matter_facts.dart`,
+`matter_facts_panel.dart`): the document is read on the device (court, case
+number, parties, CORAM, counsel by side, statutes) and, with the service, by
+the AI (`POST /v1/extract`: also stage, category, relief, issues). The user
+corrects these facts, including the judge the matter is listed before now
+(not necessarily the judge who decided the document), then
+`AskEngine.askFacts` ranks counsel. Each advocate shows a match score out of
+100 with its parts ("Why this advocate": outcomes, similarity, side, bench),
+a separate evidence-confidence label (High 15+, Medium 6+ decided outcomes),
+clickable favourable / unfavourable / not-counted lists, and a side-by-side
+comparison. Typed questions take the same optional case-type and bench filters.
+
 **Knowledge service** (`server/`, optional): FastAPI `POST /v1/ask` does the
 same over the *full judgment text* (FTS5) and, if `ANTHROPIC_API_KEY` is set,
 adds a short grounded summary from Claude that may cite only the retrieved
@@ -77,7 +89,7 @@ Built with Flutter 3.50 / Dart 3.14. Material widgets come from the
 
 - **State:** Riverpod 3 (`Provider`, `FutureProvider.family`, `Notifier`)
 - **Routing:** GoRouter 18, one `ShellRoute` with responsive navigation
-- **Uploads:** `file_picker` (only name and size are read in this build)
+- **Uploads:** `file_picker`; PDF and text are read on the device, then (with the service) by the AI
 - **Type:** Times New Roman, falling back to the bundled, metric-compatible
   Tinos (Apache 2.0) where the system font is unavailable (Android, web)
 

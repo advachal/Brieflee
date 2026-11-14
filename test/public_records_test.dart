@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:brieflee/core/public_records/ask_engine.dart';
 import 'package:brieflee/core/public_records/directory.dart';
+import 'package:brieflee/core/public_records/matter_facts.dart';
 import 'package:brieflee/core/public_records/knowledge.dart';
 import 'package:brieflee/core/public_records/public_records.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -181,5 +182,82 @@ void main() {
       expect(total, greaterThan(0));
       expect(total, lessThan(all));
     });
+  });
+
+  test('extracts case facts from an uploaded judgment', () {
+    final text = File('test/fixtures/sample_judgment.txt').readAsStringSync();
+    final f = FactExtractor(snap).extract(text);
+    // ignore: avoid_print
+    print(
+      '${f.court} | ${f.caseNumber} | ${f.petitioner} v. ${f.respondent} | ${f.decidingJudgeNames} | ${f.subjectId} | ${f.stage} | ${f.statutes.take(4)} | ${f.counsel.map((c) => '${c.name}/${c.side.name}/${c.counselId}')}',
+    );
+    expect(f.court, 'High Court of Delhi');
+    expect(f.caseNumber, contains('353/2022'));
+    expect(f.petitioner, contains('New India Assurance'));
+    expect(f.subjectId, 'arbitration');
+    expect(f.statutes, contains('s.34 Arbitration and Conciliation Act, 1996'));
+    expect(f.decidingJudgeNames.join(), contains('Sachin Datta'));
+    expect(
+      f.counsel
+          .where((c) => c.side == RecordSide.petitioner)
+          .map((c) => c.name),
+      contains('Abhishek Gola'),
+    );
+
+    f.side = RecordSide.petitioner;
+    f.issues = [
+      'set aside arbitral award insurance policy deductible excess clause',
+    ];
+    f.benchJudgeId = f.decidingJudgeIds.firstOrNull;
+    final a = engine.askFacts(f);
+    expect(a.hits, isNotEmpty);
+    for (final e in a.counsel) {
+      expect(
+        (e.rateComponent +
+                e.relevanceComponent +
+                e.sideComponent +
+                e.benchComponent -
+                e.score)
+            .abs(),
+        lessThan(1e-9),
+      );
+    }
+  });
+
+  test('merges the AI reading without overwriting device facts', () {
+    final f = MatterFacts(source: 'device')..caseNumber = 'O.M.P. 1/2020';
+    mergeAiFacts(f, {
+      'provider': 'Gemini',
+      'case_number': 'something else',
+      'petitioners': ['A Ltd'],
+      'respondents': ['B Ltd'],
+      'deciding_judges': [snap.judges.first.replaceFirst('Justice ', '')],
+      'procedural_stage': 'pending_interim',
+      'client_side': 'respondent',
+      'case_category': 'Arbitration: setting aside an award',
+      'statutes': ['s.34 Arbitration and Conciliation Act, 1996'],
+      'issues': ['patent illegality in the award'],
+      'summary': 'A short summary.',
+      'relief_sought': 'Set aside the award',
+    }, snap);
+    expect(f.caseNumber, 'O.M.P. 1/2020');
+    expect(f.petitioner, 'A Ltd');
+    expect(f.side, RecordSide.respondent);
+    expect(f.stage, MatterStage.interim);
+    expect(f.subjectId, 'arbitration');
+    expect(f.issues, ['patent illegality in the award']);
+    expect(f.source, 'Gemini');
+  });
+
+  test('ask filters: case type and bench', () {
+    final plain = engine.ask('award challenged for patent illegality');
+    final judge = plain.judges.firstOrNull?.judgeId;
+    final a = engine.ask(
+      'award challenged for patent illegality',
+      subjectId: 'arbitration',
+      benchJudgeId: judge,
+    );
+    expect(a.interpretation.subjects.map((s) => s.id), ['arbitration']);
+    expect(a.benchJudgeId, judge);
   });
 }

@@ -56,13 +56,26 @@ final directoryProvider = FutureProvider<RecordsDirectory>((ref) async {
   return RecordsDirectory(snapshot);
 });
 
-/// AI analysis of an uploaded document by the knowledge service, if connected.
+/// AI analysis of an uploaded document by the knowledge service, if
+/// connected. The key is the JSON request body (text, side, confirmed facts).
 final documentAnalysisProvider =
+    FutureProvider.family<Map<String, dynamic>?, String>((ref, request) async {
+      final client = ref.watch(knowledgeServiceProvider);
+      if (!client.configured) return null;
+      try {
+        return await client.analyzeDocument(request);
+      } catch (_) {
+        return null;
+      }
+    });
+
+/// Case facts read from an uploaded document by the AI, if connected.
+final documentFactsProvider =
     FutureProvider.family<Map<String, dynamic>?, String>((ref, text) async {
       final client = ref.watch(knowledgeServiceProvider);
       if (!client.configured) return null;
       try {
-        return await client.analyzeDocument(text);
+        return await client.extractFacts(text);
       } catch (_) {
         return null;
       }
