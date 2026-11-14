@@ -767,6 +767,7 @@ class _Results extends ConsumerWidget {
       children: [
         _Interpretation(answer: answer, snapshot: snapshot),
         const SizedBox(height: 20),
+        if (facts == null) _ArchiveResults(query: query),
         if (wide)
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -783,6 +784,119 @@ class _Results extends ConsumerWidget {
         ],
         RecordsAttribution(snapshot: snapshot),
       ],
+    );
+  }
+}
+
+/// Results from the knowledge service's full archive (all its courts and
+/// years), shown alongside the on-device results when the service is on.
+class _ArchiveResults extends ConsumerWidget {
+  const _ArchiveResults({required this.query});
+  final String query;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    if (!ref.watch(knowledgeServiceProvider).configured) {
+      return const SizedBox.shrink();
+    }
+    final t = Theme.of(context).textTheme;
+    final a = ref.watch(serviceAskProvider(query));
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 28),
+      child: SectionCard(
+        title: 'Across the full archive',
+        subtitle: 'The same question searched over the full text of every judgment the Brieflee service holds.',
+        child: a.when(
+          loading: () => const Padding(
+            padding: EdgeInsets.symmetric(vertical: 12),
+            child: LinearProgressIndicator(minHeight: 2),
+          ),
+          error: (_, _) => const Text('The service did not respond.'),
+          data: (m) {
+            if (m == null) {
+              return Text(
+                'The service is not reachable right now; the results below are from this device.',
+                style: t.bodyMedium?.copyWith(color: AppColors.muted),
+              );
+            }
+            final cases = (m['cases'] as List).cast<Map<String, dynamic>>();
+            final counsel = (m['counsel'] as List).cast<Map<String, dynamic>>();
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '${fmtInt(m['similar_decisions'] as int)} similar decisions found. '
+                  '${counsel.isEmpty ? 'Not enough decided outcomes to rank counsel.' : 'Counsel with the most favourable decided outcomes in them:'}',
+                  style: t.bodyLarge,
+                ),
+                const SizedBox(height: 10),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    for (final c in counsel.take(10))
+                      ActionChip(
+                        avatar: const Icon(Icons.person_outline, size: 18),
+                        label: Text(
+                          '${c['name']} · ${c['favourable']} won, ${c['unfavourable']} lost of ${c['similar_matters']}',
+                        ),
+                        onPressed: () =>
+                            context.go(Routes.counsel(q: c['name'] as String)),
+                      ),
+                  ],
+                ),
+                if (cases.isNotEmpty) ...[
+                  const SizedBox(height: 16),
+                  Text(
+                    'Most similar decisions',
+                    style: t.titleMedium?.copyWith(color: AppColors.navy),
+                  ),
+                  const SizedBox(height: 4),
+                  for (final c in cases.take(6))
+                    InkWell(
+                      onTap: c['pdf_url'] == null
+                          ? null
+                          : () => openPdf(
+                              context,
+                              Uri.parse(c['pdf_url'] as String),
+                            ),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 4),
+                        child: Row(
+                          children: [
+                            const Icon(
+                              Icons.picture_as_pdf_outlined,
+                              size: 16,
+                              color: AppColors.teal,
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                '${c['title']} · ${c['case_number']} · ${c['decision_date']} · ${c['outcome']}',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: t.bodyMedium?.copyWith(
+                                  color: AppColors.teal,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                ],
+                if (m['attribution'] != null) ...[
+                  const SizedBox(height: 10),
+                  Text(
+                    m['attribution'] as String,
+                    style: t.bodySmall?.copyWith(color: AppColors.muted),
+                  ),
+                ],
+              ],
+            );
+          },
+        ),
+      ),
     );
   }
 }

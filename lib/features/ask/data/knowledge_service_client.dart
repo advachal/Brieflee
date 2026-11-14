@@ -19,20 +19,10 @@ class KnowledgeServiceClient {
 
   bool get configured => _base.isNotEmpty;
 
-  /// Returns the service's generated answer, or null if none is available.
-  Future<String?> generatedAnswer(String question) async {
-    if (!configured) return null;
-    final res = await _client
-        .post(
-          Uri.parse('$_base/v1/ask'),
-          headers: {'content-type': 'application/json'},
-          body: jsonEncode({'question': question, 'limit': 12}),
-        )
-        .timeout(const Duration(seconds: 90));
-    if (res.statusCode != 200) return null;
-    final body = jsonDecode(res.body) as Map<String, dynamic>;
-    return body['answer'] as String?;
-  }
+  /// The service's answer over its full-text database: similar decisions,
+  /// counsel evidence and (with an AI key) a grounded summary.
+  Future<Map<String, dynamic>?> ask(String question) =>
+      _post('/v1/ask', jsonEncode({'question': question, 'limit': 12}));
 
   /// Sends an uploaded document's text for analysis: the service chunks it,
   /// finds its legal issues with Claude and links each issue to similar

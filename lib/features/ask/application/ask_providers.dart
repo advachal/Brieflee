@@ -36,18 +36,26 @@ final askAnswerProvider = FutureProvider.family<AskAnswer?, String>((
   return engine.ask(q);
 });
 
+/// The knowledge service's answer over its full archive, if connected.
+final serviceAskProvider = FutureProvider.family<Map<String, dynamic>?, String>(
+  (ref, question) async {
+    final client = ref.watch(knowledgeServiceProvider);
+    if (!client.configured || question.trim().isEmpty) return null;
+    try {
+      return await client.ask(question.trim());
+    } catch (_) {
+      return null;
+    }
+  },
+);
+
 /// Optional grounded narrative from the knowledge service.
 final generatedAnswerProvider = FutureProvider.family<String?, String>((
   ref,
   question,
 ) async {
-  final client = ref.watch(knowledgeServiceProvider);
-  if (!client.configured || question.trim().isEmpty) return null;
-  try {
-    return await client.generatedAnswer(question.trim());
-  } catch (_) {
-    return null;
-  }
+  final body = await ref.watch(serviceAskProvider(question).future);
+  return body?['answer'] as String?;
 });
 
 /// Real counsel and judge directory, built once from the records.
