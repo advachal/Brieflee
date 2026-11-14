@@ -165,6 +165,15 @@ def _llm_issues(chunks: list[str]) -> dict | None:
     return plan
 
 
+_FUNCTION_WORDS = {"of", "the", "whether", "is", "to", "and", "in", "a", "an", "be", "by", "for", "was", "under", "on", "with"}
+
+
+def _keyword_like(issue: str) -> bool:
+    """True for a bag of distinctive words rather than a phrased issue."""
+    words = issue.lower().split()
+    return len(words) >= 12 and sum(w in _FUNCTION_WORDS for w in words) < 2
+
+
 def _keyword_issues(chunks: list[str], limit: int = 8) -> dict:
     """Fallback without an LLM: the most distinctive words of each chunk."""
     docs = [Counter(w for w in re.findall(r"[a-z][a-z\-]{3,}", c.lower()) if w not in STOP) for c in chunks]
@@ -193,6 +202,13 @@ def analyze(kl: KnowledgeLayer, text: str, side: str | None = None, per_issue: i
     if len(text) > MAX_CHARS:
         raise ValueError(f"Document is {len(text):,} characters; the limit is {MAX_CHARS:,}. Upload the main judgment or pleading only.")
     chunks = chunk_document(text) if text else []
+    if confirmed and confirmed.get("issues") and all(_keyword_like(i) for i in confirmed["issues"]):
+        # The confirmed "issue" is only the device's list of distinctive words
+        # (no AI reading reached the app): let the model read the issues now.
+        ai = _llm_issues(chunks)
+        if ai:
+            confirmed = {**confirmed, "issues": [i["search_query"] for i in ai["issues"]],
+                         "summary": confirmed.get("summary") or ai.get("summary")}
     if confirmed and confirmed.get("issues"):
         statutes = confirmed.get("statutes") or []
         plan = {"summary": confirmed.get("summary"), "document_type": None, "client_side": "unclear",
