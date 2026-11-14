@@ -200,9 +200,10 @@ class KnowledgeLayer:
         rows.sort(key=lambda r: (r["sufficient_evidence"], r["score"], r["similar_matters"]), reverse=True)
         return rows
 
-    def record_card(self, h: Retrieved) -> dict:
+    def record_card(self, h: Retrieved, rating: dict | None = None) -> dict:
         m = h.meta
-        return {"id": m["id"], "case_number": m["case_number"], "title": f"{m['petitioner']} v. {m['respondent']}",
+        return {"relevance": rating.get("relevance") if rating else None, "relevance_note": rating.get("why") if rating else None,
+                "id": m["id"], "case_number": m["case_number"], "title": f"{m['petitioner']} v. {m['respondent']}",
                 "decision_date": m["decision_date"], "judges": json.loads(m["judges"]), "outcome": m["outcome"],
                 "outcome_evidence": m["outcome_evidence"], "passage": h.passage, "pdf_url": m["pdf_url"],
                 "statutes": json.loads(m["acts"] or "[]"), "score": round(h.score, 2)}

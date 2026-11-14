@@ -22,6 +22,7 @@ from collections import Counter
 
 import generate
 import llm
+import understand as understanding
 from rag import STOP, KnowledgeLayer, Retrieved
 
 MAX_CHARS = 600_000  # about 150k tokens; larger documents are refused, not cut
@@ -230,9 +231,12 @@ def analyze(kl: KnowledgeLayer, text: str, side: str | None = None, per_issue: i
     for rid, s in rrf.most_common(150):
         h = fused[rid]
         merged.append(Retrieved(h.record_id, s * 1000, h.passage, h.meta))
+    # The model checks the top decisions against the matter and reorders them.
+    context = "\n".join([plan.get("summary") or "", *("Issue: " + i["title"] for i in plan["issues"][:6])]).strip()
+    merged, ratings = understanding.rerank(context, merged) if context else (merged, {})
     counsel = kl.counsel_evidence(merged, side)
     ranked = [c for c in counsel if c["sufficient_evidence"]][:10]
-    cases = [kl.record_card(h) for h in merged[:20]]
+    cases = [kl.record_card(h, ratings.get(h.record_id)) for h in merged[:20]]
     answer = None
     if merged and plan.get("summary"):
         answer = generate.grounded_answer(
@@ -240,6 +244,8 @@ def analyze(kl: KnowledgeLayer, text: str, side: str | None = None, per_issue: i
 
     return {
         "method": method,
+        "reranked": bool(ratings),
+        "search_by_meaning": kl.vectors.ready,
         "chunks": len(chunks),
         "summary": plan.get("summary"),
         "document_type": plan.get("document_type"),

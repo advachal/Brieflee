@@ -841,11 +841,23 @@ class _ArchiveResults extends ConsumerWidget {
                 style: t.bodyMedium?.copyWith(color: AppColors.muted),
               );
             }
-            final cases = (m['cases'] as List).cast<Map<String, dynamic>>();
+            final cases = (m['cases'] as List)
+                .cast<Map<String, dynamic>>()
+                .where((c) => c['relevance'] != 0)
+                .toList();
+            final reading =
+                (m['interpretation'] as Map?)?['reading'] as String?;
             final counsel = (m['counsel'] as List).cast<Map<String, dynamic>>();
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                if (reading != null) ...[
+                  Text(
+                    'Understood as: $reading',
+                    style: t.bodyMedium?.copyWith(color: AppColors.teal),
+                  ),
+                  const SizedBox(height: 6),
+                ],
                 Text(
                   '${fmtInt(m['similar_decisions'] as int)} similar decisions found. '
                   '${counsel.isEmpty ? 'Not enough decided outcomes to rank counsel.' : 'Counsel with the most favourable decided outcomes in them:'}',
@@ -893,13 +905,27 @@ class _ArchiveResults extends ConsumerWidget {
                             ),
                             const SizedBox(width: 8),
                             Expanded(
-                              child: Text(
-                                '${c['title']} · ${c['case_number']} · ${c['decision_date']} · ${c['outcome']}',
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: t.bodyMedium?.copyWith(
-                                  color: AppColors.teal,
-                                ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    '${c['title']} · ${c['case_number']} · ${c['decision_date']} · ${c['outcome']}',
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: t.bodyMedium?.copyWith(
+                                      color: AppColors.teal,
+                                    ),
+                                  ),
+                                  if (_note(c) != null)
+                                    Text(
+                                      _note(c)!,
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: t.bodySmall?.copyWith(
+                                        color: AppColors.muted,
+                                      ),
+                                    ),
+                                ],
                               ),
                             ),
                           ],
@@ -1633,7 +1659,10 @@ class _ArchiveDocumentResults extends ConsumerWidget {
     final m = ref.watch(documentAnalysisProvider(request)).value;
     if (m == null) return const SizedBox.shrink();
     final t = Theme.of(context).textTheme;
-    final cases = (m['cases'] as List).cast<Map<String, dynamic>>();
+    final cases = (m['cases'] as List)
+        .cast<Map<String, dynamic>>()
+        .where((c) => c['relevance'] != 0)
+        .toList();
     final counsel = (m['counsel'] as List).cast<Map<String, dynamic>>();
     final wide = MediaQuery.sizeOf(context).width >= 1100;
 
@@ -1725,7 +1754,7 @@ class _ArchiveDocumentResults extends ConsumerWidget {
         ),
         const SizedBox(height: 6),
         Text(
-          'Most similar first, from every year and court in the archive. Each opens the official judgment PDF.',
+          'Most similar first, from every year and court in the archive, checked by AI against your matter where available. Each opens the official judgment PDF.',
           style: t.bodySmall?.copyWith(color: AppColors.muted),
         ),
         const SizedBox(height: 8),
@@ -1749,6 +1778,13 @@ class _ArchiveDocumentResults extends ConsumerWidget {
                     c['title'] as String,
                     style: t.titleMedium?.copyWith(color: AppColors.navy),
                   ),
+                  if (_note(c) != null) ...[
+                    const SizedBox(height: 2),
+                    Text(
+                      _note(c)!,
+                      style: t.bodySmall?.copyWith(color: AppColors.gold),
+                    ),
+                  ],
                   if ((c['passage'] as String? ?? '').isNotEmpty) ...[
                     const SizedBox(height: 4),
                     Text(
@@ -1946,4 +1982,17 @@ class _ServiceCaseLink extends StatelessWidget {
       ),
     );
   }
+}
+
+/// The AI's one-line reason a decision matches, with its rating.
+String? _note(Map<String, dynamic> c) {
+  final why = (c['relevance_note'] as String?)?.trim();
+  if (why == null || why.isEmpty) return null;
+  final label = switch (c['relevance']) {
+    3 => 'Close match',
+    2 => 'Same legal question',
+    1 => 'Same area of law',
+    _ => 'Match',
+  };
+  return '$label: $why';
 }

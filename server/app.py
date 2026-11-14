@@ -19,6 +19,7 @@ from pydantic import BaseModel
 import analyze as analysis
 import generate
 import llm
+import understand as understanding
 from rag import KnowledgeLayer
 
 DB = os.environ.get("KNOWLEDGE_DB", os.path.join(os.path.dirname(__file__), "..", "build", "knowledge", "knowledge.db"))
@@ -82,15 +83,33 @@ def analyze(req: AnalyzeRequest):
 @app.post("/v1/ask")
 def ask(req: AskRequest):
     interp = kl.interpret(req.question, req.side)
-    hits = kl.retrieve(interp)
-    counsel = kl.counsel_evidence(hits, interp["side"])
-    cases = [kl.record_card(h) for h in hits[: req.limit]]
+    # 1. The model reads the question first (what is needed, which side, which
+    #    statutes, how a matching judgment would put it).
+    u = understanding.understand(req.question)
+    side = interp["side"]
+    if u:
+        queries = [u["meaning_query"], *u.get("keyword_queries", [])[:3], req.question]
+        if req.side is None and u.get("client_side") in ("petitioner", "respondent"):
+            side = u["client_side"][0]
+        statutes = u.get("statutes") or []
+    else:
+        queries, statutes = [req.question], []
+    # 2. Hybrid search (keywords + meaning) for each reading, fused by rank.
+    hits = understanding.search(kl, queries, side, statutes)
+    # 3. The model checks the top decisions against the question and reorders them.
+    context = req.question + (f"\n(Reading: {u['reading']})" if u and u.get("reading") else "")
+    hits, ratings = understanding.rerank(context, hits)
+    counsel = kl.counsel_evidence(hits, side)
+    cases = [kl.record_card(h, ratings.get(h.record_id)) for h in hits[: req.limit]]
     ranked = [c for c in counsel if c["sufficient_evidence"]][:10]
     answer = generate.grounded_answer(req.question, cases, ranked) if hits else None
+    meaning = kl.vectors.ready
     return {
         "question": req.question,
         "interpretation": {"subjects": [l for _, l in interp["subjects"]], "sections": interp["sections"],
-                           "terms": interp["terms"], "side": interp["side"]},
+                           "terms": interp["terms"], "side": side,
+                           "reading": u.get("reading") if u else None, "statutes": statutes,
+                           "queries": queries if u else []},
         "answer": answer,
         "answer_kind": "generated_grounded" if answer else "template",
         "similar_decisions": len(hits),
@@ -98,7 +117,10 @@ def ask(req: AskRequest):
         "counsel": ranked,
         "counsel_insufficient": [c for c in counsel if not c["sufficient_evidence"]][:15],
         "method": {
-            "retrieval": f"BM25 (SQLite FTS5) over the text of {kl.source.get('name') or 'official Delhi High Court judgments'}",
+            "understanding": (llm.used_label() if u else None),
+            "retrieval": ("keywords (BM25) + meaning (bge-small embeddings), fused by rank" if meaning else "keywords (BM25)")
+                         + f" over the text of {kl.source.get('name') or 'official Delhi High Court judgments'}",
+            "reranking": (f"top {understanding.RERANK_TOP} checked by {llm.used_label()}" if ratings else None),
             "outcomes": "rule-based reading of the operative sentence; settled, withdrawn, interim and unclear orders excluded",
             "smoothing": f"favourable rate smoothed toward 50% with prior strength {10}",
             "evidence_threshold": "at least 3 outcome-eligible similar decisions",
