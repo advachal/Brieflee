@@ -4,3 +4,4 @@ anthropic>=0.70
 google-genai>=1.30
 numpy>=1.26
 fastembed>=0.4
+certifi

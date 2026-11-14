@@ -76,7 +76,7 @@ def _groq(system: str, user: str, schema: dict | None, json_mode: bool = True, t
         headers={"Authorization": f"Bearer {os.environ['GROQ_API_KEY']}", "Content-Type": "application/json",
                  "User-Agent": "brieflee-knowledge-service"})
     try:
-        with urllib.request.urlopen(req, timeout=120) as r:
+        with urllib.request.urlopen(req, timeout=120, context=_ssl_context()) as r:
             data = json.load(r)
     except urllib.error.HTTPError as e:
         detail = e.read()[:400].decode("utf-8", "replace")
@@ -96,6 +96,17 @@ def _groq(system: str, user: str, schema: dict | None, json_mode: bool = True, t
                 return _groq(system, user, schema, False, tries - 1)
         raise RuntimeError(f"Groq HTTP {e.code}: {detail[:200]}") from None
     return data["choices"][0]["message"]["content"]
+
+
+def _ssl_context():
+    """Certificates from certifi when installed: the standalone Python that uv
+    installs on macOS may not find the system certificates."""
+    import ssl
+    try:
+        import certifi
+        return ssl.create_default_context(cafile=certifi.where())
+    except ImportError:
+        return ssl.create_default_context()
 
 
 def log(msg: str) -> None:
