@@ -5,6 +5,10 @@ name: Check knowledge service
 # after a server deploy.
 on:
   workflow_dispatch:
+    inputs:
+      url:
+        description: "Service URL (blank: the site's configured service)"
+        default: ""
   push:
     branches: [main]
     paths: [.github/workflows/check-service.yml]
@@ -13,12 +17,12 @@ jobs:
   check:
     runs-on: ubuntu-latest
     env:
-      URL: ${{ vars.BRIEFLEE_KNOWLEDGE_URL || 'https://brieflee-knowledge-to1s.onrender.com' }}
+      URL: ${{ inputs.url || vars.BRIEFLEE_KNOWLEDGE_URL || 'https://brieflee-knowledge-to1s.onrender.com' }}
     steps:
       - uses: actions/checkout@v4
       - name: Health (waits for a sleeping free instance)
         run: |
-          for i in $(seq 1 12); do
+          for i in $(seq 1 40); do
             if curl -fsS -m 60 "$URL/v1/health" -o health.json; then break; fi
             sleep 10
           done

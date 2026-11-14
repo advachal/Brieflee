@@ -1,0 +1,68 @@
+name: Build knowledge database
+
+# Builds the server's knowledge database from the harvested judgment text
+# (releases archive-text-<year>) and the archive's metadata, then publishes it,
+# gzipped and split into parts, on the release "knowledge-db" with a
+# knowledge-db.parts file listing the part URLs in order.
+on:
+  workflow_dispatch:
+    inputs:
+      years:
+        description: "Years, e.g. 2015-2025"
+        default: "2015-2025"
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 340
+    env:
+      GH_TOKEN: ${{ github.token }}
+      WORK: /mnt/brieflee
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install --quiet pandas pyarrow
+      - name: Free disk space
+        run: |
+          sudo mkdir -p $WORK && sudo chown $USER $WORK
+          df -h / /mnt
+      - name: Download text and metadata
+        run: |
+          set -e
+          mkdir -p $WORK/shards $WORK/meta
+          lo=${{ inputs.years }}; hi=${lo#*-}; lo=${lo%-*}
+          for y in $(seq $lo $hi); do
+            gh release download archive-text-$y -p 'text_*.jsonl.gz' -D $WORK/shards --clobber || echo "no text for $y"
+            for b in $(ls $WORK/shards | sed -n "s/^text_${y}_7_26_\(.*\)\.jsonl\.gz$/\1/p"); do
+              curl -fsS -o $WORK/meta/hc_${y}_7_26_${b}.parquet \
+                "https://indian-high-court-judgments.s3.amazonaws.com/metadata/parquet/year=$y/court=7_26/bench=$b/metadata.parquet"
+            done
+            curl -fsS -o $WORK/meta/sc_${y}.parquet \
+              "https://indian-supreme-court-judgments.s3.amazonaws.com/metadata/parquet/year=$y/metadata.parquet" || echo "no SC metadata for $y"
+          done
+          ls -la $WORK/shards $WORK/meta
+      - name: Build
+        run: python tool/archive/build_archive_db.py --shards $WORK/shards --meta $WORK/meta --db $WORK/knowledge.db
+      - name: Publish to the knowledge-db release
+        run: |
+          set -e
+          cd $WORK
+          rm -rf shards
+          ls -lh knowledge.db
+          gzip -6 -c knowledge.db | split -b 1900m -d -a 2 - knowledge.db.gz.part-
+          sha256sum knowledge.db > knowledge.db.sha256
+          base="https://github.com/${{ github.repository }}/releases/download/knowledge-db"
+          ls knowledge.db.gz.part-* | sed "s|^|$base/|" > knowledge-db.parts
+          cat knowledge-db.parts
+          gh release view knowledge-db -R ${{ github.repository }} >/dev/null 2>&1 || gh release create knowledge-db -R ${{ github.repository }} \
+            --title "Knowledge database" --notes "Server knowledge database (SQLite, gzipped, split into parts): Delhi High Court and Supreme Court of India judgments. Built by the Build knowledge database workflow from the archive-text releases."
+          # Remove old parts first so a smaller database leaves no stale part behind.
+          for a in $(gh release view knowledge-db -R ${{ github.repository }} --json assets -q '.assets[].name'); do
+            gh release delete-asset knowledge-db "$a" -R ${{ github.repository }} -y
+          done
+          gh release upload knowledge-db knowledge.db.gz.part-* knowledge-db.parts knowledge.db.sha256 -R ${{ github.repository }} --clobber

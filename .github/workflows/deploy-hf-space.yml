@@ -1,0 +1,57 @@
+name: Deploy to Hugging Face
+
+# Creates (or updates) the free Hugging Face Space "<user>/brieflee-knowledge"
+# running the knowledge service, pointed at the database on the knowledge-db
+# release. Needs repository secrets HF_TOKEN (write) and, for AI reading,
+# GEMINI_API_KEY.
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: [server/**, deploy/hf-space/**, .github/workflows/deploy-hf-space.yml]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      HF_TOKEN: ${{ secrets.HF_TOKEN }}
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check secrets
+        run: |
+          [ -n "$HF_TOKEN" ] || { echo "::error::Repository secret HF_TOKEN is missing"; exit 1; }
+          [ -n "$GEMINI_API_KEY" ] || echo "::warning::GEMINI_API_KEY is missing: the Space will run without AI reading"
+      - name: Find the database parts
+        run: |
+          gh release download knowledge-db -p knowledge-db.parts -R ${{ github.repository }} \
+            || { echo "::error::No knowledge-db release yet: run Build knowledge database first"; exit 1; }
+          cat knowledge-db.parts
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install --quiet "huggingface_hub>=0.30"
+      - name: Create or update the Space
+        run: |
+          mkdir -p stage && cp -r server stage/ && cp deploy/hf-space/README.md deploy/hf-space/Dockerfile stage/
+          rm -rf stage/server/__pycache__
+          python - <<'PY'
+          import os
+          from huggingface_hub import HfApi
+          api = HfApi(token=os.environ["HF_TOKEN"])
+          user = api.whoami()["name"]
+          repo = f"{user}/brieflee-knowledge"
+          api.create_repo(repo, repo_type="space", space_sdk="docker", exist_ok=True)
+          api.add_space_variable(repo, "KNOWLEDGE_DB_PARTS", " ".join(open("knowledge-db.parts").read().split()))
+          api.add_space_variable(repo, "GEMINI_MODEL", "gemini-3.5-flash")
+          if os.environ.get("GEMINI_API_KEY"):
+              api.add_space_secret(repo, "GEMINI_API_KEY", os.environ["GEMINI_API_KEY"])
+          api.upload_folder(repo_id=repo, repo_type="space", folder_path="stage",
+                            commit_message="Deploy from GitHub " + os.environ.get("GITHUB_SHA", "")[:7])
+          url = f"https://{user.lower()}-brieflee-knowledge.hf.space"
+          print("Space:", f"https://huggingface.co/spaces/{repo}")
+          print("Service URL:", url)
+          with open(os.environ["GITHUB_STEP_SUMMARY"], "a") as f:
+              f.write(f"Space: https://huggingface.co/spaces/{repo}\n\nService URL: {url}\n")
+          PY
