@@ -8,6 +8,8 @@ keyword document matching. Keys are read from the environment only.
 """
 import json
 import os
+import sys
+import time
 import urllib.error
 import urllib.request
 
@@ -17,7 +19,7 @@ GROQ_MODEL = os.environ.get("GROQ_MODEL", "llama-3.3-70b-versatile")
 # Free Groq accounts allow only a few thousand tokens a minute, so long
 # documents are sent as their beginning and end (where the parties, counsel,
 # prayer and operative part are).
-GROQ_MAX_CHARS = int(os.environ.get("GROQ_MAX_CHARS", "20000"))
+GROQ_MAX_CHARS = int(os.environ.get("GROQ_MAX_CHARS", "16000"))
 
 _LABELS = {"gemini": f"Gemini ({GEMINI_MODEL})", "claude": f"Claude ({CLAUDE_MODEL})", "groq": f"Groq ({GROQ_MODEL})"}
 last_used: str | None = None
@@ -56,17 +58,18 @@ def used_label() -> str | None:
     return _LABELS.get(last_used) if last_used else label()
 
 
-def _groq(system: str, user: str, schema: dict | None) -> str | None:
-    system_in = system
-    if len(user) > GROQ_MAX_CHARS:
+def _groq(system: str, user: str, schema: dict | None, json_mode: bool = True, tries: int = 3) -> str | None:
+    text = user
+    if len(text) > GROQ_MAX_CHARS:
         keep = GROQ_MAX_CHARS // 3
-        user = user[: GROQ_MAX_CHARS - keep] + "\n\n[… middle of the document omitted …]\n\n" + user[-keep:]
+        text = text[: GROQ_MAX_CHARS - keep] + "\n\n[… middle of the document omitted …]\n\n" + text[-keep:]
+    sys_msg = system
     if schema is not None:
-        system = (system + "\n\nReply with one JSON object only, matching this JSON schema exactly "
-                  "(every required field present):\n" + json.dumps(schema))
-    body = {"model": GROQ_MODEL, "temperature": 0.1, "max_tokens": 3000,
-            "messages": [{"role": "system", "content": system}, {"role": "user", "content": user}]}
-    if schema is not None:
+        sys_msg = (system + "\n\nReply with one JSON object only, matching this JSON schema exactly "
+                   "(every required field present):\n" + json.dumps(schema))
+    body = {"model": GROQ_MODEL, "temperature": 0.1, "max_tokens": 2000,
+            "messages": [{"role": "system", "content": sys_msg}, {"role": "user", "content": text}]}
+    if schema is not None and json_mode:
         body["response_format"] = {"type": "json_object"}
     req = urllib.request.Request(
         "https://api.groq.com/openai/v1/chat/completions", data=json.dumps(body).encode(),
@@ -76,11 +79,41 @@ def _groq(system: str, user: str, schema: dict | None) -> str | None:
         with urllib.request.urlopen(req, timeout=120) as r:
             data = json.load(r)
     except urllib.error.HTTPError as e:
-        # 413: request larger than the free per-minute token allowance. Retry once, shorter.
-        if e.code == 413 and len(user) > 6000:
-            return _groq(system_in, user[: len(user) // 2], schema)
-        raise RuntimeError(f"Groq HTTP {e.code}: {e.read()[:300].decode('utf-8', 'replace')}") from None
+        detail = e.read()[:400].decode("utf-8", "replace")
+        log(f"Groq HTTP {e.code}: {detail}")
+        if tries > 1:
+            # Too large for the free per-minute token allowance: send less.
+            if (e.code == 413 or (e.code == 429 and "Requested" in detail)) and len(text) > 6000:
+                return _groq(system, text[: len(text) // 2], schema, json_mode, tries - 1)
+            # Per-minute limit reached: wait briefly once.
+            if e.code == 429:
+                wait = float(e.headers.get("retry-after") or 0)
+                if 0 < wait <= 30:
+                    time.sleep(wait)
+                    return _groq(system, user, schema, json_mode, tries - 1)
+            # The model's JSON failed Groq's check: ask again without JSON mode.
+            if e.code == 400 and "json" in detail.lower() and json_mode:
+                return _groq(system, user, schema, False, tries - 1)
+        raise RuntimeError(f"Groq HTTP {e.code}: {detail[:200]}") from None
     return data["choices"][0]["message"]["content"]
+
+
+def log(msg: str) -> None:
+    print(f"[llm] {msg}", file=sys.stderr, flush=True)
+
+
+def _parse_json(text: str):
+    text = text.strip()
+    try:
+        return json.loads(text)
+    except json.JSONDecodeError:
+        a, b = text.find("{"), text.rfind("}")
+        if a >= 0 and b > a:
+            try:
+                return json.loads(text[a:b + 1])
+            except json.JSONDecodeError:
+                pass
+    return None
 
 
 def _gemini(system: str, user: str, schema: dict | None) -> str | None:
@@ -127,6 +160,7 @@ def complete(system: str, user: str) -> str | None:
         try:
             text = _call(p, system, user, None)
         except Exception as e:  # quota, network: try the next provider
+            log(f"{p} failed: {type(e).__name__}: {e}")
             error = e
             continue
         if text:
@@ -144,14 +178,12 @@ def complete_json(system: str, user: str, schema: dict) -> dict | None:
         try:
             text = _call(p, system, user, schema)
         except Exception as e:
+            log(f"{p} failed: {type(e).__name__}: {e}")
             error = e
             continue
         if not text:
             continue
-        try:
-            data = json.loads(text)
-        except json.JSONDecodeError:
-            continue
+        data = _parse_json(text)
         if isinstance(data, dict):
             for k, v in (schema.get("properties") or {}).items():  # fill gaps a looser model left
                 data.setdefault(k, [] if v.get("type") == "array" else "")
