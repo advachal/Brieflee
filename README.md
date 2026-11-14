@@ -185,9 +185,9 @@ the Delhi High Court snapshot and knowledge layer in `assets/data/`, ships with
 it, and uploaded judgments are read in the visitor's browser.
 
 **Knowledge service (optional).** For full-text retrieval and AI summaries, deploy
-`server/` (Docker; `render.yaml` is a Render blueprint). `knowledge.db` is too large
-for git, so attach it (gzipped) to a GitHub Release and set `KNOWLEDGE_DB_URL` to the
-asset's download URL; set `ANTHROPIC_API_KEY` for summaries. Then add a repository
+`server/` (Docker; `render.yaml` is a Render blueprint). The knowledge database ships
+gzipped and split in `knowledge/` and is unpacked at start-up (see
+`knowledge/README.md`); set `ANTHROPIC_API_KEY` for summaries. Then add a repository
 variable `BRIEFLEE_KNOWLEDGE_URL` with the service URL so the website uses it.
 
 **Rebuilding the data.** `tool/build_dhc_snapshot.py` builds the case snapshot from

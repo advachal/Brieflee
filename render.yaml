@@ -8,7 +8,5 @@ services:
     plan: starter
     healthCheckPath: /v1/health
     envVars:
-      - key: KNOWLEDGE_DB_URL
-        sync: false
       - key: ANTHROPIC_API_KEY
         sync: false
