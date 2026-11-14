@@ -68,7 +68,7 @@ def understand(question: str) -> dict | None:
     if not llm.available():
         return None
     try:
-        u = llm.complete_json(UNDERSTAND_SYSTEM, f"QUESTION: {question}", UNDERSTAND_SCHEMA)
+        u = llm.complete_json(UNDERSTAND_SYSTEM, f"QUESTION: {question}", UNDERSTAND_SCHEMA, fast=True)
     except Exception:
         return None
     if not u or not (u.get("meaning_query") or u.get("keyword_queries")):
@@ -105,7 +105,7 @@ def rerank(context: str, hits: list[Retrieved]) -> tuple[list[Retrieved], dict[s
                      f"   passage: {' '.join((h.passage or '').split())[:420]}")
     try:
         out = llm.complete_json(RERANK_SYSTEM, f"MATTER:\n{context[:3000]}\n\nDECISIONS:\n" + "\n".join(lines),
-                                RERANK_SCHEMA)
+                                RERANK_SCHEMA, fast=True)
     except Exception:
         return hits, {}
     ratings = {}

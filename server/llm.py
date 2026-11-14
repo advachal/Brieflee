@@ -8,6 +8,7 @@ keyword document matching. Keys are read from the environment only.
 """
 import json
 import os
+import re
 import sys
 import time
 import urllib.error
@@ -16,6 +17,10 @@ import urllib.request
 GEMINI_MODEL = os.environ.get("GEMINI_MODEL", "gemini-3.5-flash")
 CLAUDE_MODEL = "claude-opus-5-5"
 GROQ_MODEL = os.environ.get("GROQ_MODEL", "openai/gpt-oss-120b")
+# Short tasks (reading a question, checking results) use a second model: Groq's
+# free per-minute token allowance is per model, so they don't queue behind
+# document reading.
+GROQ_FAST_MODEL = os.environ.get("GROQ_FAST_MODEL", "openai/gpt-oss-20b")
 # Groq retires models often; when the chosen one is gone, the best available
 # from this list (else any chat model on the account) is used instead.
 GROQ_PREFERRED = ["openai/gpt-oss-120b", "moonshotai/kimi-k2-instruct-0905", "moonshotai/kimi-k2-instruct",
@@ -63,7 +68,9 @@ def used_label() -> str | None:
     return _LABELS.get(last_used) if last_used else label()
 
 
-def _groq(system: str, user: str, schema: dict | None, json_mode: bool = True, tries: int = 3) -> str | None:
+def _groq(system: str, user: str, schema: dict | None, json_mode: bool = True, tries: int = 4,
+          fast: bool = False) -> str | None:
+    model = GROQ_FAST_MODEL if fast and GROQ_FAST_MODEL else GROQ_MODEL
     text = user
     if len(text) > GROQ_MAX_CHARS:
         keep = GROQ_MAX_CHARS // 3
@@ -72,9 +79,9 @@ def _groq(system: str, user: str, schema: dict | None, json_mode: bool = True, t
     if schema is not None:
         sys_msg = (system + "\n\nReply with one JSON object only, matching this JSON schema exactly "
                    "(every required field present):\n" + json.dumps(schema))
-    body = {"model": GROQ_MODEL, "temperature": 0.1, "max_tokens": 4000,
+    body = {"model": model, "temperature": 0.1, "max_tokens": 4000,
             "messages": [{"role": "system", "content": sys_msg}, {"role": "user", "content": text}]}
-    if "gpt-oss" in GROQ_MODEL:
+    if "gpt-oss" in model:
         body["reasoning_effort"] = "low"  # leaves the token budget for the answer
     if schema is not None and json_mode:
         body["response_format"] = {"type": "json_object"}
@@ -88,21 +95,31 @@ def _groq(system: str, user: str, schema: dict | None, json_mode: bool = True, t
     except urllib.error.HTTPError as e:
         detail = e.read()[:400].decode("utf-8", "replace")
         log(f"Groq HTTP {e.code}: {detail}")
-        if e.code == 404 and "model" in detail and tries > 1 and _pick_groq_model():
-            return _groq(system, user, schema, json_mode, tries - 1)
+        again = lambda **kw: _groq(system, kw.get("user", user), schema, kw.get("json_mode", json_mode), tries - 1, fast)
         if tries > 1:
-            # Too large for the free per-minute token allowance: send less.
-            if (e.code == 413 or (e.code == 429 and "Requested" in detail)) and len(text) > 6000:
-                return _groq(system, text[: len(text) // 2], schema, json_mode, tries - 1)
-            # Per-minute limit reached: wait briefly once.
-            if e.code == 429:
-                wait = float(e.headers.get("retry-after") or 0)
-                if 0 < wait <= 30:
-                    time.sleep(wait)
-                    return _groq(system, user, schema, json_mode, tries - 1)
-            # The model's JSON failed Groq's check: ask again without JSON mode.
+            if e.code == 404 and "model" in detail:
+                if fast:  # the small model is gone: use the main one
+                    return _groq(system, user, schema, json_mode, tries - 1, False)
+                if _pick_groq_model():
+                    return again()
+            if e.code in (413, 429):
+                m = re.search(r"Limit (\d+), Used (\d+), Requested (\d+)", detail)
+                limit, requested = (int(m.group(1)), int(m.group(3))) if m else (0, 0)
+                # Larger than the per-minute allowance itself: send less.
+                if e.code == 413 or (m and requested > limit):
+                    if len(text) > 4000:
+                        return again(user=text[: int(len(text) * min(0.6, 0.9 * limit / max(requested, 1)))] if m else text[: len(text) // 2])
+                else:
+                    # Allowance used up for this minute: wait as told (at most 30 s).
+                    w = re.search(r"try again in (?:(\d+)m)?([\d.]+)(m?s)", detail)
+                    wait = float(e.headers.get("retry-after") or 10)
+                    if w:
+                        wait = int(w.group(1) or 0) * 60 + float(w.group(2)) / (1000 if w.group(3) == "ms" else 1)
+                    if wait <= 30:
+                        time.sleep(wait + 0.5)
+                        return again()
             if e.code == 400 and "json" in detail.lower() and json_mode:
-                return _groq(system, user, schema, False, tries - 1)
+                return again(json_mode=False)
         raise RuntimeError(f"Groq HTTP {e.code}: {detail[:200]}") from None
     return data["choices"][0]["message"]["content"]
 
@@ -195,8 +212,10 @@ def _claude(system: str, user: str, schema: dict | None) -> str | None:
     return "".join(b.text for b in response.content if b.type == "text")
 
 
-def _call(name: str, system: str, user: str, schema: dict | None) -> str | None:
-    return {"groq": _groq, "gemini": _gemini, "claude": _claude}[name](system, user, schema)
+def _call(name: str, system: str, user: str, schema: dict | None, fast: bool = False) -> str | None:
+    if name == "groq":
+        return _groq(system, user, schema, fast=fast)
+    return {"gemini": _gemini, "claude": _claude}[name](system, user, schema)
 
 
 def complete(system: str, user: str) -> str | None:
@@ -217,12 +236,12 @@ def complete(system: str, user: str) -> str | None:
     return None
 
 
-def complete_json(system: str, user: str, schema: dict) -> dict | None:
+def complete_json(system: str, user: str, schema: dict, fast: bool = False) -> dict | None:
     global last_used
     error = None
     for p in providers():
         try:
-            text = _call(p, system, user, schema)
+            text = _call(p, system, user, schema, fast)
         except Exception as e:
             log(f"{p} failed: {type(e).__name__}: {e}")
             error = e
