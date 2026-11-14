@@ -275,17 +275,17 @@ class _Brand extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final mark = Container(
-      width: 34,
-      height: 34,
+      width: 36,
+      height: 36,
+      padding: dark ? const EdgeInsets.all(3) : EdgeInsets.zero,
       decoration: BoxDecoration(
-        color: dark ? AppColors.gold : AppColors.navy,
+        color: dark ? Colors.white : Colors.transparent,
         borderRadius: BorderRadius.circular(9),
       ),
-      alignment: Alignment.center,
-      child: Icon(
-        Icons.balance,
-        size: 20,
-        color: dark ? AppColors.navy : AppColors.gold,
+      child: Image.asset(
+        'assets/brand/brieflee_mark.png',
+        semanticLabel: 'Brieflee logo',
+        filterQuality: FilterQuality.medium,
       ),
     );
     return Row(
@@ -298,14 +298,8 @@ class _Brand extends StatelessWidget {
             TextSpan(
               children: [
                 TextSpan(
-                  text: 'Brief',
+                  text: 'Brieflee',
                   style: TextStyle(color: dark ? Colors.white : AppColors.navy),
-                ),
-                TextSpan(
-                  text: 'lee',
-                  style: TextStyle(
-                    color: dark ? AppColors.gold : AppColors.teal,
-                  ),
                 ),
               ],
             ),
