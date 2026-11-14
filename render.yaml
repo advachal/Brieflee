@@ -1,5 +1,5 @@
-# Render blueprint for the optional knowledge service. Set KNOWLEDGE_DB_URL,
-# and ANTHROPIC_API_KEY if you want grounded AI summaries, in the dashboard.
+# Render blueprint for the optional knowledge service. Set ANTHROPIC_API_KEY
+# in the dashboard if you want grounded AI summaries.
 services:
   - type: web
     name: brieflee-knowledge
