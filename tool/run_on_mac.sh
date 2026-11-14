@@ -24,7 +24,11 @@ UV=$(command -v uv || echo "$HOME/.local/bin/uv")
 
 # 2. The server code and the website (latest from GitHub).
 echo "== Fetching the server and website…"
-curl -fsSL "https://codeload.github.com/$REPO/tar.gz/refs/heads/main" | tar -xz --strip-components=1 "Brieflee-main/server"
+if curl -fsSL -o server.zip "https://github.com/$REPO/releases/download/web-latest/brieflee-server.zip"; then
+  rm -rf server && unzip -q -o server.zip && rm server.zip
+else  # older releases: take the server from a snapshot of the code
+  curl -fsSL "https://codeload.github.com/$REPO/tar.gz/refs/heads/main" | tar -xz --strip-components=1 "Brieflee-main/server"
+fi
 curl -fsSL -o web.zip "https://github.com/$REPO/releases/download/web-latest/brieflee-web.zip"
 rm -rf web && unzip -q -o web.zip && rm web.zip
 

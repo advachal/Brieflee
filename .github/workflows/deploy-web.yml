@@ -38,9 +38,10 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           (cd build && zip -qr ../brieflee-web.zip web)
+          zip -qr brieflee-server.zip server -x 'server/__pycache__/*'
           gh release view web-latest >/dev/null 2>&1 || gh release create web-latest --title "Website build" \
             --notes "The built website, for tool/run_on_mac.sh. Updated on every push to main."
-          gh release upload web-latest brieflee-web.zip --clobber
+          gh release upload web-latest brieflee-web.zip brieflee-server.zip --clobber
       - uses: actions/upload-pages-artifact@v3
         with:
           path: build/web
