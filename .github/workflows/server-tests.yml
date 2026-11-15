@@ -1,0 +1,21 @@
+name: Server tests
+
+# Fast checks of the router and the answer gate (no database, no AI key).
+on:
+  push:
+    paths: [server/**, tool/eval/**, .github/workflows/server-tests.yml]
+  pull_request:
+    paths: [server/**, tool/eval/**, .github/workflows/server-tests.yml]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install pytest
+      - run: python -m pytest -q server/tests
+      - name: Route accuracy on the gold set
+        run: python tool/eval/run_eval.py

@@ -1,0 +1,665 @@
+[
+ {
+  "q": "My client wants to challenge an arbitral award under section 34 on the ground that the arbitrator ignored vital evidence and the award is patently illegal. Which counsel have succeeded in setting aside such awards?",
+  "route": "simple",
+  "area": "Arbitration",
+  "side": "petitioner",
+  "statutes": "s.34 Arbitration and Conciliation Act, 1996",
+  "kw": [
+   "patent illegality set aside arbitral award section 34",
+   "award ignores vital evidence perverse section 34 petition allowed"
+  ]
+ },
+ {
+  "q": "We are defending an arbitral award against a section 34 challenge filed after the three-month limitation period. Find decisions where delay beyond 30 days was not condoned.",
+  "route": "simple",
+  "area": "Arbitration",
+  "side": "respondent",
+  "statutes": "s.34(3) Arbitration and Conciliation Act, 1996",
+  "kw": [
+   "section 34(3) limitation three months thirty days condonation not condoned",
+   "petition under section 34 barred by limitation delay cannot be condoned"
+  ]
+ },
+ {
+  "q": "Appeal under section 37 against an order refusing to set aside an award in a construction contract dispute with a government department.",
+  "route": "simple",
+  "area": "Arbitration",
+  "side": "petitioner",
+  "statutes": "s.37 Arbitration and Conciliation Act, 1996",
+  "kw": [
+   "appeal section 37 arbitration construction contract award upheld",
+   "FAO(OS)(COMM) section 37 works contract escalation claims award"
+  ]
+ },
+ {
+  "q": "Interim injunction under section 9 to restrain encashment of a bank guarantee pending arbitration.",
+  "route": "simple",
+  "area": "Arbitration",
+  "side": "petitioner",
+  "statutes": "s.9 Arbitration and Conciliation Act, 1996",
+  "kw": [
+   "section 9 restrain invocation encashment bank guarantee fraud irretrievable injustice",
+   "unconditional bank guarantee injunction section 9 arbitration"
+  ]
+ },
+ {
+  "q": "Can an award be set aside because the arbitrator was unilaterally appointed by one party after the Perkins Eastman judgment?",
+  "route": "simple",
+  "area": "Arbitration",
+  "side": "petitioner",
+  "statutes": "s.12(5) and Seventh Schedule, Arbitration and Conciliation Act, 1996",
+  "kw": [
+   "unilateral appointment arbitrator ineligible section 12(5) Perkins Eastman award set aside",
+   "seventh schedule ineligible arbitrator award void"
+  ]
+ },
+ {
+  "q": "Enforcement of a foreign arbitral award where the Indian party argues it is against the public policy of India.",
+  "route": "simple",
+  "area": "Arbitration",
+  "side": "petitioner",
+  "statutes": "s.48 Arbitration and Conciliation Act, 1996",
+  "kw": [
+   "enforcement foreign award section 48 public policy of India",
+   "foreign award enforceable section 47 49 objections rejected"
+  ]
+ },
+ {
+  "q": "Trademark infringement and passing off by a deceptively similar mark in the pharmaceutical sector; we represent the plaintiff seeking an interim injunction.",
+  "route": "simple",
+  "area": "Trademark",
+  "side": "petitioner",
+  "statutes": "s.29 Trade Marks Act, 1999",
+  "kw": [
+   "deceptively similar trade mark pharmaceutical drugs interim injunction passing off",
+   "medicinal products phonetic similarity trademark infringement injunction granted"
+  ]
+ },
+ {
+  "q": "Defending a trademark suit where the defendant claims honest concurrent use and prior use of the mark.",
+  "route": "simple",
+  "area": "Trademark",
+  "side": "respondent",
+  "statutes": "s.34 Trade Marks Act, 1999",
+  "kw": [
+   "prior user section 34 trade marks honest concurrent use injunction refused",
+   "defendant prior use of mark since earlier date plaintiff not entitled injunction"
+  ]
+ },
+ {
+  "q": "Rectification or cancellation of a registered trademark for non-use under section 47.",
+  "route": "simple",
+  "area": "Trademark",
+  "side": "petitioner",
+  "statutes": "s.47, s.57 Trade Marks Act, 1999",
+  "kw": [
+   "removal of trade mark non use section 47 rectification",
+   "cancellation petition section 57 trade mark register non-use"
+  ]
+ },
+ {
+  "q": "Domain name and online infringement: an injunction against rogue websites using our client's brand name.",
+  "route": "simple",
+  "area": "Trademark",
+  "side": "petitioner",
+  "statutes": "Trade Marks Act, 1999",
+  "kw": [
+   "domain name registrar rogue websites injunction suspend domain",
+   "dynamic injunction infringing domain names trade mark"
+  ]
+ },
+ {
+  "q": "Registered design of an LED light; defendant says the design was prior published and not new, so registration should be cancelled and no injunction granted.",
+  "route": "simple",
+  "area": "Design",
+  "side": "respondent",
+  "statutes": "s.19, s.22 Designs Act, 2000",
+  "kw": [
+   "design prior publication not new or original section 19 cancellation",
+   "Designs Act section 22 piracy injunction prior published"
+  ]
+ },
+ {
+  "q": "Patent infringement suit for a pharmaceutical compound: interim injunction against a generic manufacturer.",
+  "route": "simple",
+  "area": "Patent",
+  "side": "petitioner",
+  "statutes": "s.48 Patents Act, 1970",
+  "kw": [
+   "patent infringement pharmaceutical compound generic interim injunction",
+   "credible challenge validity patent injunction pharmaceutical"
+  ]
+ },
+ {
+  "q": "Challenge to a refusal of a patent application by the Controller on the ground of section 3(k) computer program per se.",
+  "route": "simple",
+  "area": "Patent",
+  "side": "petitioner",
+  "statutes": "s.3(k), s.117A Patents Act, 1970",
+  "kw": [
+   "section 3(k) computer programme per se technical effect patent refused appeal",
+   "appeal section 117A Controller of Patents refusal remanded"
+  ]
+ },
+ {
+  "q": "Copyright infringement of software or cinematograph film by online streaming; plaintiff seeking injunction.",
+  "route": "simple",
+  "area": "Copyright",
+  "side": "petitioner",
+  "statutes": "Copyright Act, 1957",
+  "kw": [
+   "copyright infringement cinematograph film online streaming websites injunction",
+   "piracy websites copyright John Doe injunction"
+  ]
+ },
+ {
+  "q": "Summary judgment under Order XIIIA in a commercial recovery suit where the defendant has no real prospect of defending the claim.",
+  "route": "simple",
+  "area": "Commercial",
+  "side": "petitioner",
+  "statutes": "Order XIIIA CPC; Commercial Courts Act, 2015",
+  "kw": [
+   "summary judgment Order XIII-A no real prospect of successfully defending",
+   "commercial suit summary judgment decreed"
+  ]
+ },
+ {
+  "q": "Pre-institution mediation under section 12A Commercial Courts Act was not done; can the suit be rejected?",
+  "route": "simple",
+  "area": "Commercial",
+  "side": "respondent",
+  "statutes": "s.12A Commercial Courts Act, 2015",
+  "kw": [
+   "section 12A pre-institution mediation mandatory rejection of plaint",
+   "urgent interim relief section 12A Commercial Courts Act"
+  ]
+ },
+ {
+  "q": "Rejection of plaint under Order VII Rule 11 because the suit is barred by limitation.",
+  "route": "simple",
+  "area": "Civil procedure",
+  "side": "respondent",
+  "statutes": "Order VII Rule 11 CPC",
+  "kw": [
+   "Order VII Rule 11 plaint rejected barred by limitation",
+   "rejection of plaint cause of action limitation suit"
+  ]
+ },
+ {
+  "q": "Suit for specific performance of an agreement to sell immovable property where the buyer was not ready and willing.",
+  "route": "simple",
+  "area": "Property",
+  "side": "respondent",
+  "statutes": "s.16(c) Specific Relief Act, 1963",
+  "kw": [
+   "specific performance readiness and willingness section 16(c) agreement to sell",
+   "agreement to sell immovable property specific performance refused"
+  ]
+ },
+ {
+  "q": "Eviction of a tenant on bona fide requirement under section 14(1)(e) of the Delhi Rent Control Act; the tenant seeks leave to defend.",
+  "route": "simple",
+  "area": "Rent",
+  "side": "respondent",
+  "statutes": "s.14(1)(e), s.25B Delhi Rent Control Act, 1958",
+  "kw": [
+   "bona fide requirement section 14(1)(e) leave to defend section 25B",
+   "eviction petition landlord bona fide need leave to defend refused"
+  ]
+ },
+ {
+  "q": "Partition suit among family members over ancestral property in Delhi, including HUF claims.",
+  "route": "simple",
+  "area": "Property",
+  "side": "petitioner",
+  "statutes": "Hindu Succession Act, 1956",
+  "kw": [
+   "partition suit HUF ancestral property coparcenary",
+   "Hindu undivided family partition preliminary decree"
+  ]
+ },
+ {
+  "q": "Regular bail for an accused under the NDPS Act with commercial quantity, where section 37 rigours apply.",
+  "route": "simple",
+  "area": "Criminal",
+  "side": "petitioner",
+  "statutes": "s.37 NDPS Act, 1985",
+  "kw": [
+   "bail commercial quantity section 37 NDPS reasonable grounds not guilty",
+   "NDPS bail long incarceration section 37 rigours"
+  ]
+ },
+ {
+  "q": "Quashing of an FIR under section 482 CrPC on the basis of a settlement between the parties in a matrimonial dispute.",
+  "route": "simple",
+  "area": "Criminal",
+  "side": "petitioner",
+  "statutes": "s.482 CrPC; s.498A IPC",
+  "kw": [
+   "quashing FIR compromise settlement section 482 498A",
+   "FIR quashed parties amicably settled matrimonial"
+  ]
+ },
+ {
+  "q": "Dishonour of cheque under section 138 NI Act: complaint against a director who was not in charge of the company's affairs.",
+  "route": "simple",
+  "area": "Criminal",
+  "side": "respondent",
+  "statutes": "s.138, s.141 Negotiable Instruments Act, 1881",
+  "kw": [
+   "section 141 director in charge of and responsible conduct of business cheque",
+   "section 138 complaint against non-executive director quashed"
+  ]
+ },
+ {
+  "q": "Anticipatory bail in a cheating and criminal breach of trust case arising from a commercial transaction.",
+  "route": "simple",
+  "area": "Criminal",
+  "side": "petitioner",
+  "statutes": "s.438 CrPC; s.420, s.406 IPC",
+  "kw": [
+   "anticipatory bail cheating 420 406 commercial dispute civil nature",
+   "pre-arrest bail section 438 cheating"
+  ]
+ },
+ {
+  "q": "Bail for an accused under the Prevention of Money Laundering Act with the twin conditions of section 45.",
+  "route": "simple",
+  "area": "Criminal",
+  "side": "petitioner",
+  "statutes": "s.45 PMLA, 2002",
+  "kw": [
+   "PMLA bail twin conditions section 45",
+   "money laundering bail Enforcement Directorate"
+  ]
+ },
+ {
+  "q": "Appeal against conviction for murder under section 302 IPC based on circumstantial evidence.",
+  "route": "simple",
+  "area": "Criminal",
+  "side": "petitioner",
+  "statutes": "s.302 IPC",
+  "kw": [
+   "conviction section 302 circumstantial evidence chain incomplete acquitted",
+   "murder appeal last seen theory circumstantial evidence"
+  ]
+ },
+ {
+  "q": "POCSO case: appeal against conviction where the age of the victim was not proved.",
+  "route": "simple",
+  "area": "Criminal",
+  "side": "petitioner",
+  "statutes": "POCSO Act, 2012",
+  "kw": [
+   "POCSO age of victim not proved school certificate ossification",
+   "conviction POCSO set aside age prosecutrix"
+  ]
+ },
+ {
+  "q": "Writ against termination of a contractual employee without notice or hearing by a government body.",
+  "route": "simple",
+  "area": "Service",
+  "side": "petitioner",
+  "statutes": "Art. 226, Art. 14 Constitution of India",
+  "kw": [
+   "termination without show cause notice principles of natural justice writ",
+   "contractual employee termination arbitrary article 14"
+  ]
+ },
+ {
+  "q": "Challenge to denial of promotion due to adverse APAR entries not communicated to the officer.",
+  "route": "simple",
+  "area": "Service",
+  "side": "petitioner",
+  "statutes": "Art. 226 Constitution of India",
+  "kw": [
+   "uncommunicated adverse APAR promotion denied Dev Dutt",
+   "below benchmark ACR not communicated promotion"
+  ]
+ },
+ {
+  "q": "Writ petition against a CAT order upholding disciplinary penalty of dismissal of a CRPF or BSF personnel.",
+  "route": "simple",
+  "area": "Service",
+  "side": "petitioner",
+  "statutes": "Art. 226 Constitution of India; CCS (CCA) Rules",
+  "kw": [
+   "dismissal from service CRPF disciplinary enquiry writ petition",
+   "BSF personnel dismissal penalty disproportionate"
+  ]
+ },
+ {
+  "q": "Disability pension for armed forces personnel where the disability was not recorded at the time of entry into service.",
+  "route": "simple",
+  "area": "Service",
+  "side": "petitioner",
+  "statutes": "Pension Regulations for the Army",
+  "kw": [
+   "disability pension attributable aggravated military service not recorded at entry",
+   "Armed Forces disability pension broad banding"
+  ]
+ },
+ {
+  "q": "Reopening of income tax assessment under section 148 after four years without failure to disclose fully and truly.",
+  "route": "simple",
+  "area": "Tax",
+  "side": "petitioner",
+  "statutes": "s.147, s.148 Income Tax Act, 1961",
+  "kw": [
+   "reassessment beyond four years failure to disclose fully and truly section 147",
+   "notice under section 148 quashed reason to believe change of opinion"
+  ]
+ },
+ {
+  "q": "Reassessment notices issued under the new section 148A regime after 1 April 2021: are they time-barred?",
+  "route": "simple",
+  "area": "Tax",
+  "side": "petitioner",
+  "statutes": "s.148A Income Tax Act, 1961",
+  "kw": [
+   "section 148A notice time barred TOLA Ashish Agarwal",
+   "reassessment new regime section 148A(d) order quashed"
+  ]
+ },
+ {
+  "q": "GST: cancellation of registration without proper show cause notice or reasons.",
+  "route": "simple",
+  "area": "Tax",
+  "side": "petitioner",
+  "statutes": "s.29 CGST Act, 2017",
+  "kw": [
+   "cancellation of GST registration show cause notice no reasons",
+   "GST registration cancelled retrospectively quashed"
+  ]
+ },
+ {
+  "q": "Refund of GST or IGST on exports withheld by the department.",
+  "route": "simple",
+  "area": "Tax",
+  "side": "petitioner",
+  "statutes": "s.54 CGST Act, 2017",
+  "kw": [
+   "refund IGST exports withheld interest",
+   "GST refund rejected writ petition directed to process"
+  ]
+ },
+ {
+  "q": "Maintenance under section 125 CrPC to a wife who left the matrimonial home; husband claims she is earning.",
+  "route": "simple",
+  "area": "Family",
+  "side": "respondent",
+  "statutes": "s.125 CrPC",
+  "kw": [
+   "maintenance section 125 wife earning capable of maintaining herself",
+   "interim maintenance wife qualified working husband"
+  ]
+ },
+ {
+  "q": "Divorce on the ground of cruelty under section 13(1)(ia) Hindu Marriage Act: appeal against the family court decree.",
+  "route": "simple",
+  "area": "Family",
+  "side": "petitioner",
+  "statutes": "s.13(1)(ia) Hindu Marriage Act, 1955",
+  "kw": [
+   "cruelty section 13(1)(ia) divorce decree upheld appeal",
+   "mental cruelty false complaints divorce family court"
+  ]
+ },
+ {
+  "q": "Motor accident compensation: appeal by the insurer on the ground of a fake driving licence.",
+  "route": "simple",
+  "area": "Motor accident",
+  "side": "respondent",
+  "statutes": "s.149, s.173 Motor Vehicles Act, 1988",
+  "kw": [
+   "fake driving licence insurance company recovery rights pay and recover",
+   "MACT appeal insurer breach of policy licence"
+  ]
+ },
+ {
+  "q": "Land acquisition: enhancement of compensation for land acquired in Delhi villages.",
+  "route": "simple",
+  "area": "Land",
+  "side": "petitioner",
+  "statutes": "Land Acquisition Act, 1894; RFCTLARR Act, 2013",
+  "kw": [
+   "enhancement of compensation land acquisition market value village Delhi",
+   "section 24(2) lapse of acquisition compensation not paid"
+  ]
+ },
+ {
+  "q": "Admission to a medical or engineering course denied due to a domicile or reservation condition.",
+  "route": "simple",
+  "area": "Education",
+  "side": "petitioner",
+  "statutes": "Art. 14, Art. 15 Constitution of India",
+  "kw": [
+   "admission denied domicile requirement medical course writ",
+   "reservation category certificate admission cancelled writ allowed"
+  ]
+ },
+ {
+  "q": "Industrial dispute: workman's reinstatement with back wages after illegal retrenchment without section 25F compliance.",
+  "route": "simple",
+  "area": "Labour",
+  "side": "petitioner",
+  "statutes": "s.25F Industrial Disputes Act, 1947",
+  "kw": [
+   "retrenchment without compliance section 25F reinstatement back wages",
+   "industrial adjudicator award workman reinstatement"
+  ]
+ },
+ {
+  "q": "Contempt petition for wilful non-compliance of a court order by a government department.",
+  "route": "simple",
+  "area": "Contempt",
+  "side": "petitioner",
+  "statutes": "Contempt of Courts Act, 1971",
+  "kw": [
+   "wilful disobedience order contempt petition compliance",
+   "civil contempt non-compliance department officials"
+  ]
+ },
+ {
+  "q": "Compare the record of counsel who appeared for petitioners and for respondents in section 34 arbitration challenges decided by Division Benches.",
+  "route": "complex",
+  "area": "Arbitration",
+  "side": "unclear",
+  "statutes": "s.34, s.37 Arbitration and Conciliation Act, 1996",
+  "kw": [
+   "section 37 appeal division bench award set aside",
+   "section 37 appeal dismissed award upheld"
+  ]
+ },
+ {
+  "q": "My client's single-judge win in a trademark suit is under appeal to the Division Bench. Which counsel have defended single-judge injunctions on appeal successfully?",
+  "route": "complex",
+  "area": "Trademark",
+  "side": "respondent",
+  "statutes": "Trade Marks Act, 1999",
+  "kw": [
+   "FAO(OS)(COMM) appeal against grant of interim injunction trade mark dismissed",
+   "appeal division bench interim injunction trade mark upheld Wander"
+  ]
+ },
+ {
+  "q": "A pharmaceutical client faces both a patent infringement suit and a revocation counter-claim. Find matters where both were decided together and who appeared.",
+  "route": "complex",
+  "area": "Patent",
+  "side": "respondent",
+  "statutes": "s.64, s.48 Patents Act, 1970",
+  "kw": [
+   "counter claim revocation patent section 64 infringement suit",
+   "patent invalid obviousness counter-claim revocation"
+  ]
+ },
+ {
+  "q": "How have the Delhi High Court and the Supreme Court treated reassessment notices under the old and new section 148 regimes since 2021?",
+  "route": "complex",
+  "area": "Tax",
+  "side": "petitioner",
+  "statutes": "s.148, s.148A Income Tax Act, 1961",
+  "kw": [
+   "Ashish Agarwal section 148A new regime reassessment",
+   "Rajeev Bansal reassessment TOLA time limit"
+  ]
+ },
+ {
+  "q": "An employee was dismissed after a departmental enquiry and also acquitted in the criminal case on the same facts. Find decisions on whether the acquittal helps in the service matter.",
+  "route": "complex",
+  "area": "Service",
+  "side": "petitioner",
+  "statutes": "Art. 226 Constitution of India",
+  "kw": [
+   "acquittal criminal case departmental proceedings same facts dismissal set aside",
+   "honourable acquittal disciplinary enquiry reinstatement"
+  ]
+ },
+ {
+  "q": "Our client lost a section 9 petition for a bank guarantee injunction and the arbitration is now pending. Which counsel won the later section 34 stage in similar bank guarantee disputes?",
+  "route": "complex",
+  "area": "Arbitration",
+  "side": "petitioner",
+  "statutes": "s.9, s.34 Arbitration and Conciliation Act, 1996",
+  "kw": [
+   "bank guarantee encashment arbitration award section 34",
+   "liquidated damages bank guarantee award set aside"
+  ]
+ },
+ {
+  "q": "Which judgments of the Delhi High Court on NDPS bail and section 37 were later considered by the Supreme Court, and with what outcome?",
+  "route": "complex",
+  "area": "Criminal",
+  "side": "petitioner",
+  "statutes": "s.37 NDPS Act, 1985",
+  "kw": [
+   "Supreme Court NDPS bail section 37 High Court order set aside",
+   "special leave petition bail NDPS commercial quantity"
+  ]
+ },
+ {
+  "q": "A copyright and trademark dispute over a film title and characters: find matters that combined both claims and the counsel on each side.",
+  "route": "complex",
+  "area": "Copyright",
+  "side": "petitioner",
+  "statutes": "Copyright Act, 1957; Trade Marks Act, 1999",
+  "kw": [
+   "film title trade mark copyright no copyright in title passing off",
+   "characters copyright trademark film injunction"
+  ]
+ },
+ {
+  "q": "For tenant eviction under the Delhi Rent Control Act, how often is leave to defend granted, and which counsel appear most for tenants who succeed?",
+  "route": "complex",
+  "area": "Rent",
+  "side": "respondent",
+  "statutes": "s.25B Delhi Rent Control Act, 1958",
+  "kw": [
+   "leave to defend granted triable issue tenant section 25B",
+   "revision petition leave to defend allowed tenant"
+  ]
+ },
+ {
+  "q": "A government contractor wants to challenge both blacklisting and a related arbitral award. Find decisions on blacklisting without hearing and the counsel who appeared.",
+  "route": "complex",
+  "area": "Administrative",
+  "side": "petitioner",
+  "statutes": "Art. 226 Constitution of India",
+  "kw": [
+   "blacklisting contractor without show cause notice natural justice quashed",
+   "debarment of contractor writ petition"
+  ]
+ },
+ {
+  "q": "Compare outcomes in GST registration cancellation writs before and after 2023, and the counsel who appeared for taxpayers.",
+  "route": "complex",
+  "area": "Tax",
+  "side": "petitioner",
+  "statutes": "s.29 CGST Act, 2017",
+  "kw": [
+   "cancellation GST registration show cause notice vague restored",
+   "GST registration cancellation retrospective effect set aside"
+  ]
+ },
+ {
+  "q": "Show me the judgment in GM Modular v. Syska LED Lights.",
+  "route": "lookup",
+  "area": "Design",
+  "side": "unclear",
+  "statutes": "",
+  "kw": [
+   "GM Modular Syska LED Lights"
+  ]
+ },
+ {
+  "q": "Find decisions in which the Union of India was respondent in disability pension cases decided in 2023.",
+  "route": "simple",
+  "area": "Service",
+  "side": "unclear",
+  "statutes": "",
+  "kw": [
+   "disability pension Union of India 2023"
+  ]
+ },
+ {
+  "q": "Judgments of the Supreme Court on the Perkins Eastman principle of unilateral appointment of arbitrators.",
+  "route": "simple",
+  "area": "Arbitration",
+  "side": "unclear",
+  "statutes": "",
+  "kw": [
+   "Perkins Eastman unilateral appointment arbitrator Supreme Court"
+  ]
+ },
+ {
+  "q": "Cases in which Hindustan Unilever was a party in trademark disputes.",
+  "route": "lookup",
+  "area": "Trademark",
+  "side": "unclear",
+  "statutes": "",
+  "kw": [
+   "Hindustan Unilever trade mark"
+  ]
+ },
+ {
+  "q": "How many section 34 petitions were allowed and dismissed by the Delhi High Court each year from 2020 to 2025?",
+  "route": "aggregate",
+  "area": "Arbitration",
+  "side": "unclear",
+  "statutes": "s.34 Arbitration and Conciliation Act, 1996",
+  "kw": [
+   "section 34 petition award"
+  ]
+ },
+ {
+  "q": "How many NDPS bail applications were granted versus rejected in 2024?",
+  "route": "aggregate",
+  "area": "Criminal",
+  "side": "unclear",
+  "statutes": "NDPS Act, 1985",
+  "kw": [
+   "NDPS bail"
+  ]
+ },
+ {
+  "q": "Which advocates appeared most often for the Income Tax Department in reassessment writs?",
+  "route": "aggregate",
+  "area": "Tax",
+  "side": "respondent",
+  "statutes": "s.148 Income Tax Act, 1961",
+  "kw": [
+   "reassessment section 148 writ"
+  ]
+ },
+ {
+  "q": "What share of trademark interim injunction applications were granted in 2022 to 2024?",
+  "route": "aggregate",
+  "area": "Trademark",
+  "side": "unclear",
+  "statutes": "Trade Marks Act, 1999",
+  "kw": [
+   "trade mark interim injunction"
+  ]
+ }
+]
