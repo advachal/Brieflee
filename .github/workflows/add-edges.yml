@@ -1,0 +1,44 @@
+name: Add citation graph to the published database
+
+# Adds the citation and appeal graph (edges table) to the published
+# knowledge.db without rebuilding it, then republishes it. The database's
+# checksum changes, so servers download it again on their next update.
+on:
+  workflow_dispatch:
+
+jobs:
+  edges:
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      WORK: /mnt/work
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Download the published database
+        run: |
+          set -e
+          sudo mkdir -p $WORK && sudo chown $USER $WORK && cd $WORK
+          gh release download knowledge-db -R ${{ github.repository }} -p 'knowledge.db.gz.part-*' -p knowledge.db.sha256
+          cat knowledge.db.gz.part-* | gunzip > knowledge.db
+          rm knowledge.db.gz.part-*
+          sha256sum -c knowledge.db.sha256
+      - name: Build edges
+        run: python tool/knowledge/build_edges.py $WORK/knowledge.db
+      - name: Republish
+        run: |
+          set -e
+          cd $WORK
+          gzip -6 -c knowledge.db | split -b 1900m -d -a 2 - knowledge.db.gz.part-
+          sha256sum knowledge.db > knowledge.db.sha256
+          base="https://github.com/${{ github.repository }}/releases/download/knowledge-db"
+          ls knowledge.db.gz.part-* | sed "s|^|$base/|" > knowledge-db.parts
+          for a in $(gh release view knowledge-db -R ${{ github.repository }} --json assets -q '.assets[].name' | grep '^knowledge.db.gz.part-'); do
+            gh release delete-asset knowledge-db "$a" -R ${{ github.repository }} -y
+          done
+          gh release upload knowledge-db knowledge.db.gz.part-* knowledge-db.parts knowledge.db.sha256 -R ${{ github.repository }} --clobber
