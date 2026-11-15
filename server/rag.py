@@ -47,6 +47,8 @@ class KnowledgeLayer:
         self.counsel = {r["id"]: r["name"] for r in self.db.execute("SELECT id, name FROM counsel")}
         self.source = {r["key"]: json.loads(r["value"]) for r in self.db.execute("SELECT key, value FROM source")}
         self.vectors = VectorIndex(db_path)
+        self.has_edges = bool(self.db.execute(
+            "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'edges'").fetchone())
 
     @property
     def db(self) -> sqlite3.Connection:
@@ -158,10 +160,43 @@ class KnowledgeLayer:
             out[r["record_id"]] = Retrieved(r["record_id"], sim, t[:320] + (" …" if len(t) > 320 else ""))
         return list(out.values())
 
+    # Citation and appeal graph (edges table; see tool/knowledge/build_edges.py)
+    def appeals_against(self, record_ids: list[str]) -> dict[str, dict]:
+        """{lower record id: the appeal decided against it}, from appeal_of edges."""
+        if not self.has_edges or not record_ids:
+            return {}
+        out = {}
+        for i in range(0, len(record_ids), 500):
+            b = record_ids[i:i + 500]
+            q = (f"SELECT e.dst, r.id, r.case_number, r.decision_date, r.outcome FROM edges e JOIN records r ON r.id = e.src "
+                 f"WHERE e.kind = 'appeal_of' AND e.dst IN ({','.join('?' * len(b))}) ORDER BY r.decision_date")
+            for row in self.db.execute(q, b):
+                out[row[0]] = {"id": row[1], "case_number": row[2], "decision_date": row[3], "outcome": row[4]}
+        return out
+
+    def graph(self, record_id: str, limit: int = 50) -> dict:
+        """What a decision cites, what cites it, and its appeals both ways."""
+        if not self.has_edges:
+            return {"available": False}
+
+        def side(sql):
+            return [{"id": r[0], "case_number": r[1], "title": f"{r[2]} v. {r[3]}", "decision_date": r[4], "outcome": r[5],
+                     "evidence": r[6]} for r in self.db.execute(sql, (record_id, limit))]
+        cols = "r.id, r.case_number, r.petitioner, r.respondent, r.decision_date, r.outcome, e.evidence"
+        return {"available": True,
+                "cites": side(f"SELECT {cols} FROM edges e JOIN records r ON r.id = e.dst WHERE e.src = ? AND e.kind = 'cites' LIMIT ?"),
+                "cited_by": side(f"SELECT {cols} FROM edges e JOIN records r ON r.id = e.src WHERE e.dst = ? AND e.kind = 'cites' ORDER BY r.decision_date DESC LIMIT ?"),
+                "appeal_from": side(f"SELECT {cols} FROM edges e JOIN records r ON r.id = e.dst WHERE e.src = ? AND e.kind = 'appeal_of' LIMIT ?"),
+                "appealed_in": side(f"SELECT {cols} FROM edges e JOIN records r ON r.id = e.src WHERE e.dst = ? AND e.kind = 'appeal_of' LIMIT ?")}
+
     # 3. Reason over the knowledge layer ------------------------------------
     def counsel_evidence(self, hits: list[Retrieved], side: str | None) -> list[dict]:
         if not hits:
             return []
+        # A result later reversed on appeal is not a win (or loss) for anyone:
+        # it is set aside and not counted.
+        appeals = self.appeals_against([h.record_id for h in hits if h.meta.get("outcome") in ("petitioner", "respondent")])
+        reversed_ids = {rid for rid, a in appeals.items() if a["outcome"] in ("petitioner", "partly")}
         top = hits[0].score or 1.0
         stats: dict[int, dict] = {}
         for h in hits:
@@ -174,7 +209,7 @@ class KnowledgeLayer:
                 s = stats.setdefault(a["counsel_id"], {"similar": [], "wins": [], "losses": [], "other": [], "sides": {"p": 0, "r": 0}, "w": 0.0, "wl": 0.0})
                 s["similar"].append(h.record_id)
                 s["sides"][a["side"]] += 1
-                if outcome in ("petitioner", "respondent"):
+                if outcome in ("petitioner", "respondent") and h.record_id not in reversed_ids:
                     won = (outcome == "petitioner") == (a["side"] == "p")
                     (s["wins"] if won else s["losses"]).append(h.record_id)
                     s["w"] += sim * (1 if won else 0)
@@ -194,7 +229,8 @@ class KnowledgeLayer:
                 "favourable": len(s["wins"]), "unfavourable": len(s["losses"]),
                 "smoothed_favourable_rate": round(smoothed, 3), "score": round(score * 100, 1),
                 "sufficient_evidence": eligible >= MIN_ELIGIBLE and len(s["wins"]) > 0 and smoothed >= 0.5,
-                "evidence": {"similar": s["similar"], "favourable": s["wins"], "unfavourable": s["losses"], "not_eligible": s["other"]},
+                "evidence": {"similar": s["similar"], "favourable": s["wins"], "unfavourable": s["losses"], "not_eligible": s["other"],
+                             "reversed_on_appeal": [r for r in s["other"] if r in reversed_ids]},
                 "sides": s["sides"],
             })
         rows.sort(key=lambda r: (r["sufficient_evidence"], r["score"], r["similar_matters"]), reverse=True)
@@ -208,9 +244,9 @@ class KnowledgeLayer:
             out[rid] = " ".join(r["text"] for r in rows)[:max_chars]
         return out
 
-    def record_card(self, h: Retrieved, rating: dict | None = None) -> dict:
+    def record_card(self, h: Retrieved, rating: dict | None = None, appeal: dict | None = None) -> dict:
         m = h.meta
-        return {"relevance": rating.get("relevance") if rating else None, "relevance_note": rating.get("why") if rating else None,
+        return {"appeal": appeal, "relevance": rating.get("relevance") if rating else None, "relevance_note": rating.get("why") if rating else None,
                 "id": m["id"], "case_number": m["case_number"], "title": f"{m['petitioner']} v. {m['respondent']}",
                 "decision_date": m["decision_date"], "judges": json.loads(m["judges"]), "outcome": m["outcome"],
                 "outcome_evidence": m["outcome_evidence"], "passage": h.passage, "pdf_url": m["pdf_url"],

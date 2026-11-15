@@ -48,6 +48,8 @@ jobs:
           ls -la $WORK/shards $WORK/meta
       - name: Build
         run: python tool/archive/build_archive_db.py --shards $WORK/shards --meta $WORK/meta --db $WORK/knowledge.db
+      - name: Citation and appeal graph
+        run: python tool/knowledge/build_edges.py $WORK/knowledge.db
       - name: Publish to the knowledge-db release
         run: |
           set -e

@@ -7,6 +7,7 @@
 Optional: set GEMINI_API_KEY (or ANTHROPIC_API_KEY) for AI document analysis and a grounded, cited answer.
 Point the Flutter app at it with --dart-define=BRIEFLEE_KNOWLEDGE_URL=http://localhost:8080
 
+GET  /v1/graph/ID what a decision cites, what cites it, its appeals (edges table)
 POST /v1/ask      a question in plain words. Routed first (router.py): a named case is looked up
                   directly, a count is answered from the database (direct.py), and a search
                   question runs understand → hybrid search → re-rank → answer → answer gate (gate.py).
@@ -72,6 +73,14 @@ def health():
     return {"ok": True, "records": n, "generation": generate.available(),
             "document_analysis": llm.label() or "keywords", "search_by_meaning": kl.vectors.info(), "recent_ai_errors": llm.recent_errors,
             "database_integrity": integrity.state, "limits": guard.budget_info(), "source": kl.source}
+
+
+@app.get("/v1/graph/{record_id}")
+def graph(record_id: str):
+    """What a decision cites, what cites it, and the appeals from and against it."""
+    if not kl.db.execute("SELECT 1 FROM records WHERE id = ?", (record_id,)).fetchone():
+        raise HTTPException(404, "No such decision.")
+    return kl.graph(record_id)
 
 
 @app.post("/v1/extract")
@@ -202,7 +211,8 @@ def _search(req: AskRequest, r: dict, trace) -> dict:
     hits, ratings = understanding.rerank(context, hits) if use_ai else (hits, {})
     trace.step("rerank", rated=len(ratings))
     counsel = kl.counsel_evidence(hits, side)
-    cases = [kl.record_card(h, ratings.get(h.record_id)) for h in hits[: req.limit]]
+    appeals = kl.appeals_against([h.record_id for h in hits[: req.limit]])
+    cases = [kl.record_card(h, ratings.get(h.record_id), appeals.get(h.record_id)) for h in hits[: req.limit]]
     ranked = [c for c in counsel if c["sufficient_evidence"]][:10]
     draft = generate.grounded_answer(req.question, cases, ranked) if (hits and use_ai) else None
     trace.step("answer", generated=bool(draft))
@@ -236,6 +246,8 @@ def _search(req: AskRequest, r: dict, trace) -> dict:
             "answer_check": "cited ids must be among the retrieved decisions and quotations must appear in them",
             "outcomes": "rule-based reading of the operative sentence; settled, withdrawn, interim and unclear orders excluded",
             "smoothing": f"favourable rate smoothed toward 50% with prior strength {10}",
+            "appeals": ("results later reversed on appeal are not counted as wins or losses" if kl.has_edges
+                        else "appeal links not in this database"),
             "evidence_threshold": "at least 3 outcome-eligible similar decisions",
         },
         "attribution": kl.source.get("attribution"),
