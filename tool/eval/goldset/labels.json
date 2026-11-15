@@ -1,0 +1,1475 @@
+{
+ "1": {
+  "grades": {
+   "DLHC010315512021_2023-12-12": 3,
+   "DLHC010234332019_2023-12-20": 3,
+   "DLHC010011782018_2023-07-31": 3,
+   "DLHC010011702018_2023-07-31": 3,
+   "DLHC013709422018_2023-07-31": 3,
+   "DLHC010288992019_2023-05-26": 3,
+   "DLHC013709742018_2023-07-31": 3,
+   "DLHC010214822021_2023-07-19": 3
+  },
+  "outcome_checks": {
+   "DLHC010315512021_2023-12-12": {
+    "answer": "Yes",
+    "brieflee": "partly"
+   }
+  },
+  "missing": [
+   "SC_2019_15_295_317",
+   "SC_2024_9_490_608",
+   "SC_2021_11_142_162"
+  ],
+  "missing_text": [
+   "Associate Builders v. DDA (SC 2014)",
+   "Ssangyong Engineering & Construction v. NHAI (SC 2019)",
+   "DMRC v. Delhi Airport Metro Express (SC 2024 curative, (2024) 6 SCC 357",
+   "reverses the 2021 SC ruling that had restored the award)",
+   "PSA Sical Terminals v. VOC Port Trust ((2023) 15 SCC 781, SC)",
+   "Dwarika Projects Ltd v. New Okhla Industrial Development Authority, O.M.P.(COMM) 182/2019 (Delhi HC 28.9.2026, Claim 4 set aside for patent illegality)"
+  ],
+  "counsel": [
+   "Anusuya Salwan (for MBL Infrastructures v. DMRC, 12.12.2023, claims 3 and 4 set aside)",
+   "Abhishek Mohanty (for Dwarika Projects v. NOIDA, 28.9.2026, Claim 4 set aside)"
+  ],
+  "status": "In progress",
+  "notes": "Candidate sheet has no counsel names, so I could not answer the counsel part and left Acceptable counsel blank. Counsel names come from judgment headers; only two verified wins so far, so this list is thin."
+ },
+ "2": {
+  "grades": {
+   "DLHC010372042019_2020-06-17": 3,
+   "DLHC010008302018_2020-06-04": 2,
+   "DLHC010013662022_2023-07-19": 3,
+   "DLHC010014022022_2023-07-19": 3,
+   "DLHC010014032022_2023-07-19": 3,
+   "DLHC010420472019_2020-06-04": 3,
+   "DLHC010013652022_2023-07-19": 3,
+   "DLHC010014012022_2023-07-19": 3
+  },
+  "outcome_checks": {},
+  "missing": [
+   "SC_2018_14_676_688"
+  ],
+  "missing_text": [
+   "Union of India v. Popular Construction Co. (SC 2001)",
+   "State of H.P. v. Himachal Techno Engineers (SC 2010)"
+  ],
+  "counsel": [
+   "Priya Kumar, Sr. Adv. (for NCC, award-holder, OMP(COMM) 292/2019)",
+   "Ramesh Singh, Sr. Adv. (for award-holders, Bharat Forge v Tarsem Jain)",
+   "Amit Sibal, Sr. Adv. (for award-holder, OMP(COMM) 378/2024)"
+  ],
+  "status": "In progress",
+  "notes": ""
+ },
+ "3": {
+  "grades": {
+   "DLHC010361802023_2025-02-14": 2,
+   "DLHC010780252024_2025-02-10": 2,
+   "DLHC010817252024_2025-02-10": 2,
+   "DLHC010780272024_2025-02-10": 2,
+   "DLHC010817732024_2025-02-10": 2,
+   "DLHC010780302024_2025-02-10": 2,
+   "DLHC010780332024_2025-02-10": 2,
+   "DLHC010780232024_2025-02-10": 2
+  },
+  "outcome_checks": {},
+  "missing": [
+   "SC_2019_3_1023_1035",
+   "SC_2022_1_1_17"
+  ],
+  "missing_text": [
+   "Konkan Railway Corp. v. Chenab Bridge Project Undertaking (SC 2023)",
+   "DMRC v. Delhi Airport Metro Express ((2024) 6 SCC 357, SC curative",
+   "s.37 scope)"
+  ],
+  "counsel": [
+   "Tarun Johri and Ankur Gupta (for DMRC)",
+   "Ankur Chhibber and Parv Garg (for DMRC in MBL v DMRC)",
+   "Rajshekhar Rao, Sr. Adv. (for respondent in DSIIDC v Bawana Infra)"
+  ],
+  "status": "In progress",
+  "notes": "All 8 are IRCTC/Union catering and PSC s.37 appeals; none is a construction contract with a government department. Search should surface one."
+ },
+ "4": {
+  "grades": {
+   "DLHC010260242023_2023-09-18": 3,
+   "DLHC010047092023_2023-07-06": 3,
+   "DLHC010307312019_2019-12-03": 3,
+   "DLHC010017392019_2020-06-04": 3,
+   "DLHC010022092019_2020-06-04": 3,
+   "DLHC010197252020_2020-09-30": 3,
+   "DLHC010184822020_2020-08-27": 3,
+   "DLHC010410332019_2020-06-04": 3
+  },
+  "outcome_checks": {},
+  "missing": [],
+  "missing_text": [
+   "Standard Chartered Bank v. Heavy Engineering Corp. (SC 2019)",
+   "Svenska Handelsbanken v. Indian Charge Chrome (SC 1993)",
+   "Hindustan Steelworks Construction v. Tarapore & Co. (SC 1996)",
+   "Ansal Engineering Projects v. Tehri Hydro Development Corp. (SC 1996)"
+  ],
+  "counsel": [
+   "B.B. Gupta, Sr. Adv. (HCC, s.9 BG petition 2023)",
+   "Rajiv Nayar, Sr. Adv., Akhil Sibal, Sr. Adv. and Jayant Mehta, Sr. Adv. (TRF v Indure, s.9)",
+   "Ravi Gupta, Sr. Adv. (A.K. Mehta v DDA)",
+   "Sandeep Aggarwal, Sr. Adv. (ANS Constructions)",
+   "Uttam Datt, Sr. Adv. (Engineering Projects India)"
+  ],
+  "status": "In progress",
+  "notes": ""
+ },
+ "5": {
+  "grades": {
+   "SC_2024_11_2173_2328": 2,
+   "DLHC010334122023_2025-05-31": 3,
+   "DLHC010140512022_2023-12-18": 2,
+   "DLHC010165282025_2025-07-01": 2,
+   "DLHC010428912022_2023-09-18": 2,
+   "DLHC013336462018_2024-04-22": 3,
+   "SC_2019_6_97_120": 2,
+   "DLHC014772142017_2017-11-22": 2
+  },
+  "outcome_checks": {
+   "SC_2019_6_97_120": {
+    "answer": "Yes",
+    "brieflee": "petitioner"
+   }
+  },
+  "missing": [
+   "SC_2017_7_409_441",
+   "SC_2017_11_857_892"
+  ],
+  "missing_text": [
+   "Voestalpine Schienen GmbH v. DMRC (SC 2017)"
+  ],
+  "counsel": [],
+  "status": "In progress",
+  "notes": "Question assumes Perkins Eastman (SC 2019) bars setting aside; Mahavir Prasad Gupta (DB 2025) and Sriram Cables are the closest on the award-challenge route."
+ },
+ "6": {
+  "grades": {
+   "SC_2020_12_1_101": 3,
+   "SC_2020_4_336_458": 3,
+   "DLHC010404712016_2018-01-31": 3,
+   "SC_2021_7_957_1023": 3,
+   "SC_2021_4_532_632": 3,
+   "SC_2024_3_971_993": 3,
+   "SC_2019_7_522_606": 2,
+   "DLHC010316302020_2025-03-28": 3
+  },
+  "outcome_checks": {
+   "SC_2020_4_336_458": {
+    "answer": "Yes",
+    "brieflee": "respondent"
+   }
+  },
+  "missing": [],
+  "missing_text": [
+   "Renusagar Power Co. v. General Electric Co. (SC 1993)",
+   "Shri Lal Mahal Ltd v. Progetto Grano Spa (SC 2013)",
+   "Cruz City 1 Mauritius Holdings v. Unitech Ltd (Delhi HC 2017)"
+  ],
+  "counsel": [],
+  "status": "In progress",
+  "notes": ""
+ },
+ "7": {
+  "grades": {
+   "DLHC010149852023_2025-07-01": 3,
+   "SC_2025_8_805_901": 2,
+   "DLHC010500672019_2021-12-07": 2,
+   "DLHC010181012021_2022-04-12": 3,
+   "DLHC010816732013_2015-03-27": 2,
+   "DLHC010926102013_2015-09-01": 2,
+   "SC_2022_2_321_362": 2,
+   "DLHC010280782023_2025-07-01": 2
+  },
+  "outcome_checks": {
+   "SC_2025_8_805_901": {
+    "answer": "Yes",
+    "brieflee": "respondent"
+   },
+   "DLHC010280782023_2025-07-01": {
+    "answer": "Yes",
+    "brieflee": "respondent"
+   }
+  },
+  "missing": [],
+  "missing_text": [
+   "Cadila Healthcare v. Cadila Pharmaceuticals (SC 2001)",
+   "Amritdhara Pharmacy v. Satya Deo Gupta (SC 1962)",
+   "Kaviraj Pandit Durga Dutt Sharma v. Navaratna Pharmaceutical Laboratories (SC 1964)",
+   "Ramdev Food Products v. Arvindbhai Rambhai Patel (SC 2006)"
+  ],
+  "counsel": [
+   "Raj Shekhar Rao, Sr. Adv. and Swathi Sukumar, Sr. Adv. with S.K. Bansal (RSPL Health v Sun Pharma, FAO(COMM) 65/2025)",
+   "Pravin Anand"
+  ],
+  "status": "In progress",
+  "notes": ""
+ },
+ "8": {
+  "grades": {
+   "DLHC010413022021_2025-05-19": 3,
+   "DLHC010637722022_2025-05-19": 3,
+   "DLHC010126302023_2025-05-19": 3,
+   "SC_2022_2_321_362": 3,
+   "DLHC010638512010_2016-08-24": 2,
+   "DLHC010411232021_2023-02-22": 2,
+   "DLHC010303562021_2022-11-14": 2,
+   "DLHC010730462023_2025-07-28": 1
+  },
+  "outcome_checks": {},
+  "missing": [
+   "SC_2018_11_275_309",
+   "SC_2015_10_684_696"
+  ],
+  "missing_text": [
+   "Vishnudas Trading v. Vazir Sultan Tobacco (SC 1996)"
+  ],
+  "counsel": [
+   "Shravan Kumar Bansal (defended Leayan",
+   "interim injunction went against client)",
+   "Akhil Sibal, Sr. Adv. (VIP Industries",
+   "lost on appeal). Defence-side wins not yet verified."
+  ],
+  "status": "In progress",
+  "notes": ""
+ },
+ "9": {
+  "grades": {
+   "DLHC010227002021_2022-02-17": 2,
+   "DLHC010408972021_2024-01-05": 3,
+   "DLHC010657252023_2025-04-15": 2,
+   "DLHC010149852023_2025-07-01": 3,
+   "DLHC010408842021_2024-02-15": 2,
+   "DLHC010299142022_2023-09-20": 2,
+   "DLHC010303562021_2022-11-14": 1,
+   "DLHC010278332021_2024-05-03": 3
+  },
+  "outcome_checks": {},
+  "missing": [],
+  "missing_text": [
+   "Hardie Trading Ltd v. Addisons Paint & Chemicals (SC 2003)",
+   "S. Syed Mohideen v. P. Sulochana Bai (SC 2015)"
+  ],
+  "counsel": [],
+  "status": "In progress",
+  "notes": ""
+ },
+ "10": {
+  "grades": {
+   "DLHC010259862019_2025-12-24": 3,
+   "DLHC010130892020_2025-12-24": 3,
+   "DLHC010149852023_2025-07-01": 1,
+   "DLHC010268702021_2023-12-13": 2,
+   "DLHC010926102013_2015-09-01": 1,
+   "SC_2022_2_321_362": 1,
+   "DLHC010309602024_2024-07-09": 2,
+   "DLHC010500672019_2021-12-07": 2
+  },
+  "outcome_checks": {},
+  "missing": [
+   "DLHC010396832018_2018-11-02"
+  ],
+  "missing_text": [
+   "Satyam Infoway v. Sifynet Solutions (SC 2004)",
+   "Yahoo! Inc. v. Akash Arora (Delhi HC 1999)",
+   "Starbucks Corp. v. Sardarbuksh Coffee & Tea (Delhi HC 2018)"
+  ],
+  "counsel": [
+   "Pravin Anand (brand-owner side, Sholay and Roche matters)",
+   "Sandeep Sethi, Sr. Adv."
+  ],
+  "status": "In progress",
+  "notes": ""
+ },
+ "11": {
+  "grades": {
+   "DLHC010452102021_2025-11-18": 2,
+   "DLHC010224882019_2025-07-01": 2,
+   "DLHC010224892019_2025-07-01": 2,
+   "DLHC010225292019_2025-07-01": 2,
+   "DLHC010225272019_2025-07-01": 2,
+   "DLHC011020222018_2019-01-24": 2,
+   "DLHC010224872019_2025-07-01": 2,
+   "DLHC010225282019_2025-07-01": 2
+  },
+  "outcome_checks": {},
+  "missing": [
+   "DLHC010405542022_2022-11-16"
+  ],
+  "missing_text": [
+   "Philips Lighting Holding B.V. v. Jai Prakash Agarwal & Anr (Delhi HC, T-shaped LED bulb, prior art)",
+   "Bharat Glass Tube v. Gopal Glass Works (SC 2008)",
+   "Whirlpool of India v. Videocon Industries (Bom HC 2014)"
+  ],
+  "counsel": [],
+  "status": "In progress",
+  "notes": "None of the candidates involves an LED light design; they are all Crocs footwear designs."
+ },
+ "12": {
+  "grades": {
+   "DLHC010550662013_2015-03-20": 3,
+   "DLHC010573402018_2025-10-13": 2,
+   "DLHC011912762017_2019-04-22": 1,
+   "DLHC010294902023_2024-02-07": 3,
+   "DLHC010294782023_2024-02-07": 3,
+   "DLHC010396172021_2024-04-24": 3,
+   "DLHC010294892023_2024-02-07": 3,
+   "DLHC013157172016_2017-03-08": 2
+  },
+  "outcome_checks": {},
+  "missing": [],
+  "missing_text": [
+   "F. Hoffmann-La Roche v. Cipla (Delhi HC DB 2009, Tarceva interim injunction refused)",
+   "Novartis AG v. Union of India (SC 2013)"
+  ],
+  "counsel": [
+   "Pravin Anand (patentee, Roche v Cipla)",
+   "Arvind Nigam, Sr. Adv. (generic side, Roche v Cipla)"
+  ],
+  "status": "In progress",
+  "notes": ""
+ },
+ "13": {
+  "grades": {
+   "DLHC010012342023_2024-01-09": 1,
+   "DLHC010171012022_2023-05-15": 3,
+   "DLHC010285652022_2025-10-09": 1,
+   "DLHC010242262022_2024-08-30": 3,
+   "DLHC010484822021_2025-10-09": 1,
+   "DLHC010787582023_2025-10-09": 1,
+   "DLHC010282402022_2025-07-01": 3,
+   "DLHC011864212017_2018-04-11": 1
+  },
+  "outcome_checks": {},
+  "missing": [
+   "DLHC011964582013_2019-12-12",
+   "DLHC010197552022_2023-09-15"
+  ],
+  "missing_text": [],
+  "counsel": [],
+  "status": "In progress",
+  "notes": "Only Microsoft, Blackberry and Kroll are actual s.3(k) refusals. Others concern 3(i)/3(j) or appeal maintainability."
+ },
+ "14": {
+  "grades": {
+   "DLHC011068352018_2019-04-10": 3,
+   "DLHC010955182018_2019-04-10": 3,
+   "SC_2021_2_321_492": 1,
+   "DLHC010574912006_2018-04-05": 2,
+   "DLHC011433642011_2016-12-23": 3,
+   "DLHC010004262018_2019-01-11": 2,
+   "DLHC010130892020_2025-12-24": 2,
+   "DLHC010322072019_2022-10-10": 3
+  },
+  "outcome_checks": {},
+  "missing": [
+   "DLHC014725972017_2020-09-10"
+  ],
+  "missing_text": [],
+  "counsel": [],
+  "status": "In progress",
+  "notes": ""
+ },
+ "15": {
+  "grades": {
+   "DLHC010230372019_2023-01-20": 3,
+   "DLHC013353332018_2019-10-30": 2,
+   "DLHC011491342018_2024-02-06": 3,
+   "DLHC010499942025_2025-10-29": 3,
+   "DLHC010111222020_2022-10-10": 3,
+   "DLHC010774992025_2025-11-20": 2,
+   "DLHC011046102018_2023-05-17": 3,
+   "DLHC010294172018_2021-05-12": 2
+  },
+  "outcome_checks": {},
+  "missing": [
+   "DLHC012661512016_2017-02-15"
+  ],
+  "missing_text": [],
+  "counsel": [
+   "Jayant Mehta, Sr. Adv. (commercial suits",
+   "seen in Delhi HC 12A matters)"
+  ],
+  "status": "In progress",
+  "notes": ""
+ },
+ "16": {
+  "grades": {
+   "SC_2022_11_808_868": 3,
+   "SC_2025_6_431_470": 3,
+   "DLHC010421892025_2025-08-11": 3,
+   "DLHC010223052023_2023-05-31": 3,
+   "DLHC010260642021_2022-10-27": 3,
+   "DLHC010144262023_2023-05-08": 3,
+   "DLHC010253952025_2025-09-22": 3,
+   "DLHC010133492022_2022-11-16": 3
+  },
+  "outcome_checks": {},
+  "missing": [],
+  "missing_text": [
+   "Yamini Manohar v. T.K.D. Keerthi (SC 2023, s.12A and urgent interim relief)"
+  ],
+  "counsel": [
+   "Siddharth Yadav, Sr. Adv. (Exclusive Capital v Clover Media, RFA(COMM) 257/2025)",
+   "Jayant Mehta, Sr. Adv. (Ramacivil India defendant, 12A objection)"
+  ],
+  "status": "In progress",
+  "notes": ""
+ },
+ "17": {
+  "grades": {
+   "SC_2022_19_100_148": 3,
+   "SC_2025_1_542_575": 3,
+   "SC_2022_14_1100_1137": 2,
+   "SC_2022_11_808_868": 2,
+   "SC_2022_18_221_237": 3,
+   "DLHC010491202022_2023-05-12": 3,
+   "SC_2025_6_431_470": 2,
+   "SC_2024_12_1445_1481": 3
+  },
+  "outcome_checks": {},
+  "missing": [
+   "SC_2019_4_1069_1083",
+   "SC_2020_5_694_717"
+  ],
+  "missing_text": [
+   "T. Arivandandam v. T.V. Satyapal (SC 1977)"
+  ],
+  "counsel": [],
+  "status": "In progress",
+  "notes": ""
+ },
+ "18": {
+  "grades": {
+   "SC_2023_3_244_281": 3,
+   "DLHC010756702011_2019-02-28": 3,
+   "DLHC010313532017_2019-01-14": 3,
+   "DLHC010632122005_2018-07-03": 3,
+   "DLHC011104902018_2018-05-11": 3,
+   "DLHC015168602017_2018-11-22": 3,
+   "DLHC010075461995_2018-02-28": 3,
+   "SC_2021_10_287_308": 2
+  },
+  "outcome_checks": {},
+  "missing": [
+   "SC_2019_1_54_58",
+   "SC_2022_13_250_273"
+  ],
+  "missing_text": [
+   "N.P. Thirugnanam v. Dr. R. Jagan Mohan Rao (SC 1995)"
+  ],
+  "counsel": [],
+  "status": "In progress",
+  "notes": ""
+ },
+ "19": {
+  "grades": {
+   "DLHC010081722022_2023-04-25": 3,
+   "SC_2022_2_1016_1040": 3,
+   "SC_2019_10_1051_1097": 3,
+   "DLHC013773482018_2023-10-04": 3,
+   "DLHC014249252018_2023-10-04": 3,
+   "DLHC014890222017_2024-10-08": 3,
+   "DLHC011247862018_2025-07-01": 3,
+   "DLHC010125792022_2022-07-11": 3
+  },
+  "outcome_checks": {},
+  "missing": [],
+  "missing_text": [
+   "Precision Steel and Engineering Works v. Prem Deva Niranjan Deva Tayal (SC 1982)",
+   "Shiv Sarup Gupta v. Dr. Mahesh Chand Gupta (SC 1999)"
+  ],
+  "counsel": [],
+  "status": "In progress",
+  "notes": ""
+ },
+ "20": {
+  "grades": {
+   "SC_2020_9_619_786": 2,
+   "SC_2020_10_135_237": 3,
+   "SC_2023_14_320_373": 2,
+   "SC_2019_11_913_1005": 2,
+   "SC_2023_5_20_86": 2,
+   "DLHC010344502016_2023-12-04": 3,
+   "DLHC011720132013_2019-02-04": 3,
+   "SC_2022_1_269_310": 2
+  },
+  "outcome_checks": {},
+  "missing": [
+   "SC_2018_2_553_571",
+   "SC_2015_12_579_606"
+  ],
+  "missing_text": [
+   "CWT/CIT v. Chander Sen (SC 1986)"
+  ],
+  "counsel": [],
+  "status": "In progress",
+  "notes": ""
+ },
+ "21": {
+  "grades": {
+   "DLHC010038002025_2025-11-20": 3,
+   "DLHC010319532020_2022-05-31": 3,
+   "DLHC010120322023_2024-10-18": 3,
+   "SC_2020_3_348_358": 3,
+   "DLHC010126052023_2024-07-08": 3,
+   "DLHC010379162023_2024-10-18": 3,
+   "DLHC010118292025_2025-11-20": 3,
+   "DLHC010088622023_2024-02-05": 3
+  },
+  "outcome_checks": {
+   "SC_2020_3_348_358": {
+    "answer": "Yes",
+    "brieflee": "petitioner"
+   }
+  },
+  "missing": [
+   "SC_2023_3_697_713"
+  ],
+  "missing_text": [
+   "Narcotics Control Bureau v. Kishan Lal (SC 1991)",
+   "Union of India v. Ram Samujh (SC 1999)"
+  ],
+  "counsel": [
+   "Rahul Sharma and Deepak Ghai (Shiv Lal Ahir v State, 18.12.2025)",
+   "Ronak Karanpuria and Rohit Gautam (Rahul Kumar Sarangal v NCB, 27.5.2025)",
+   "Pramod Kumar (NCB bail, 30.5.2026)",
+   "Apoorv Shankar. Opposing side regularly: Arun Khatri, SSC and Shelly Dixit (NCB)."
+  ],
+  "status": "In progress",
+  "notes": ""
+ },
+ "22": {
+  "grades": {
+   "DLHC010225712024_2024-08-02": 3,
+   "DLHC010821602024_2025-01-28": 3,
+   "DLHC010789712024_2024-12-12": 3,
+   "DLHC010598382024_2025-01-22": 3,
+   "DLHC010368922022_2022-09-27": 3,
+   "DLHC010144302024_2024-03-19": 3,
+   "DLHC010469022022_2022-12-14": 2,
+   "DLHC010072782024_2024-02-19": 3
+  },
+  "outcome_checks": {},
+  "missing": [],
+  "missing_text": [
+   "B.S. Joshi v. State of Haryana (SC 2003)",
+   "Gian Singh v. State of Punjab (SC 2012)",
+   "Narinder Singh v. State of Punjab (SC 2014)"
+  ],
+  "counsel": [],
+  "status": "In progress",
+  "notes": ""
+ },
+ "23": {
+  "grades": {
+   "DLHC010347942018_2024-08-20": 3,
+   "DLHC010348042018_2024-08-20": 3,
+   "DLHC010347992018_2024-08-20": 3,
+   "DLHC010017402024_2024-01-22": 3,
+   "DLHC010017372024_2024-01-22": 3,
+   "DLHC010115992020_2020-10-16": 3,
+   "DLHC010017412024_2024-01-22": 3,
+   "DLHC010017362024_2024-01-22": 3
+  },
+  "outcome_checks": {},
+  "missing": [],
+  "missing_text": [
+   "S.M.S. Pharmaceuticals v. Neeta Bhalla (SC 2005)",
+   "Aneeta Hada v. Godfather Travels & Tours (SC 2012)",
+   "Pooja Ravinder Devidasani v. State of Maharashtra (SC 2014)"
+  ],
+  "counsel": [
+   "Siddharth Aggarwal, Sr. Adv. with Aditya Wadhwa (for non-executive directors Rajesh Madan, Harjeet Singh Kohli and Geeta Mathur in the Good Marketing/iWorld s.138 matters",
+   "summoning order against Madan overturned, 2024)",
+   "Viraj Dattar, Sr. Adv. (Arvind Singla v Beetel Teletech, 4.4.2025)"
+  ],
+  "status": "In progress",
+  "notes": ""
+ },
+ "24": {
+  "grades": {
+   "SC_2020_2_1_131": 3,
+   "SC_2023_15_525_589": 2,
+   "SC_2024_9_257_312": 3,
+   "SC_2024_8_1086_1145": 2,
+   "DLHC010187792025_2025-07-01": 2,
+   "SC_2020_13_621_634": 2,
+   "DLHC010401632019_2025-09-25": 2,
+   "DLHC010253392023_2025-08-08": 2
+  },
+  "outcome_checks": {},
+  "missing": [],
+  "missing_text": [
+   "Gurbaksh Singh Sibbia v. State of Punjab (SC 1980)",
+   "Siddharam Satlingappa Mhetre v. State of Maharashtra (SC 2010)"
+  ],
+  "counsel": [
+   "Siddharth Aggarwal, Sr. Adv. with Aditya Wadhwa (Neeraj Manchanda v State, EOW cheating matter, 25.9.2025)",
+   "outcome not checked"
+  ],
+  "status": "In progress",
+  "notes": ""
+ },
+ "25": {
+  "grades": {
+   "SC_2022_6_382_726": 3,
+   "DLHC010720292024_2025-01-28": 3,
+   "SC_2017_12_358_413": 3,
+   "DLHC010707972024_2025-01-28": 3,
+   "DLHC010236542022_2024-07-29": 3,
+   "DLHC010105752024_2024-03-11": 3,
+   "DLHC010679612024_2025-01-28": 3,
+   "DLHC010285252024_2024-07-01": 3
+  },
+  "outcome_checks": {},
+  "missing": [
+   "SC_2024_8_1061_1085",
+   "SC_2024_8_955_983",
+   "SC_2023_12_853_931"
+  ],
+  "missing_text": [],
+  "counsel": [
+   "Vikas Pahwa, Sr. Adv. (Amit Arora, bail granted",
+   "Arvind Dham)",
+   "Dayan Krishnan, Sr. Adv. and Sidharth Aggarwal, Sr. Adv. (excise policy bail granted",
+   "Vijaya Agarwal)",
+   "Rebecca M. John, Sr. Adv. (Ramesh Chandra, bail granted 21.3.2025)",
+   "Shadan Farasat, Sr. Adv. (PFI members, bail granted)",
+   "N. Hariharan, Sr. Adv. (bail refused 2026)"
+  ],
+  "status": "In progress",
+  "notes": ""
+ },
+ "26": {
+  "grades": {
+   "SC_2020_13_1_128": 3,
+   "SC_2022_4_225_275": 3,
+   "SC_2022_16_743_854": 3,
+   "DLHC010590622015_2015-10-12": 2,
+   "SC_2022_7_241_250": 3,
+   "SC_2025_5_906_960": 3,
+   "SC_2020_10_27_134": 2,
+   "SC_2022_4_589_605": 3
+  },
+  "outcome_checks": {},
+  "missing": [
+   "SC_2020_9_878_905"
+  ],
+  "missing_text": [
+   "Sharad Birdhichand Sarda v. State of Maharashtra (SC 1984)",
+   "Hanumant v. State of M.P. (SC 1952)"
+  ],
+  "counsel": [],
+  "status": "In progress",
+  "notes": ""
+ },
+ "27": {
+  "grades": {
+   "DLHC011499322016_2016-12-09": 3,
+   "SC_2021_10_955_1008": 1,
+   "SC_2017_7_924_1024": 1,
+   "SC_2023_10_478_492": 3,
+   "SC_2022_1_1083_1099": 2,
+   "DLHC010115952025_2025-11-28": 3,
+   "DLHC010462702025_2025-12-19": 1,
+   "DLHC010079942024_2024-07-02": 3
+  },
+  "outcome_checks": {},
+  "missing": [],
+  "missing_text": [
+   "Jarnail Singh v. State of Haryana (SC 2013)",
+   "Mahadeo v. State of Maharashtra (SC 2013)"
+  ],
+  "counsel": [],
+  "status": "In progress",
+  "notes": ""
+ },
+ "28": {
+  "grades": {
+   "SC_2022_5_1_103": 1,
+   "SC_2016_10_1_856": 0,
+   "DLHC010198902020_2021-02-10": 3,
+   "DLHC011626612016_2023-11-20": 2,
+   "SC_2024_10_493_638": 0,
+   "SC_2022_14_1_409": 0,
+   "DLHC010199602020_2021-02-10": 3,
+   "DLHC010199522020_2021-02-10": 3
+  },
+  "outcome_checks": {},
+  "missing": [],
+  "missing_text": [
+   "Kumari Shrilekha Vidyarthi v. State of U.P. (SC 1991)",
+   "State of Karnataka v. Umadevi (SC 2006)"
+  ],
+  "counsel": [],
+  "status": "In progress",
+  "notes": "Only Robin Sharma, Ved Prakash and Poonam Bhargava (ATDC) are actual contractual-employee terminations. Ranks 2, 5, 6 are unrelated."
+ },
+ "29": {
+  "grades": {
+   "DLHC015012692018_2024-08-27": 3,
+   "SC_2016_10_1_856": 0,
+   "DLHC014551342018_2024-08-27": 3,
+   "DLHC015013092018_2024-08-27": 3,
+   "DLHC013880562018_2024-08-27": 3,
+   "DLHC010662702018_2022-09-05": 2,
+   "DLHC010662762018_2022-09-05": 2,
+   "DLHC010350442021_2023-05-30": 2
+  },
+  "outcome_checks": {},
+  "missing": [],
+  "missing_text": [
+   "Dev Dutt v. Union of India (SC 2008)",
+   "Sukhdev Singh v. Union of India (SC 2013)"
+  ],
+  "counsel": [],
+  "status": "In progress",
+  "notes": ""
+ },
+ "30": {
+  "grades": {
+   "DLHC012822982017_2023-05-25": 2,
+   "SC_2023_7_772_826": 2,
+   "DLHC010148502019_2025-03-27": 1,
+   "DLHC012805302014_2016-09-05": 2,
+   "SC_2016_6_333_361": 2,
+   "SC_2023_13_473_572": 2,
+   "SC_2023_5_772_799": 2,
+   "DLHC010341682007_2016-08-23": 2
+  },
+  "outcome_checks": {},
+  "missing": [],
+  "missing_text": [
+   "B.C. Chaturvedi v. Union of India (SC 1995)",
+   "Union of India v. P. Gunasekaran (SC 2015)"
+  ],
+  "counsel": [],
+  "status": "In progress",
+  "notes": "No candidate involves CRPF/BSF personnel or a CAT order. Search should look at Force rules (CRPF Act, BSF Act) too."
+ },
+ "31": {
+  "grades": {
+   "DLHC011121642024_2025-03-27": 3,
+   "DLHC010148412025_2025-03-27": 3,
+   "SC_2025_4_1550_1571": 3,
+   "DLHC010599302024_2025-07-01": 3,
+   "DLHC010710282024_2025-07-01": 3,
+   "DLHC010675872024_2025-07-01": 3,
+   "DLHC010733312024_2025-07-01": 3,
+   "DLHC010556382024_2025-07-01": 3
+  },
+  "outcome_checks": {
+   "SC_2025_4_1550_1571": {
+    "answer": "Yes",
+    "brieflee": "petitioner"
+   }
+  },
+  "missing": [
+   "SC_2015_2_183_201"
+  ],
+  "missing_text": [
+   "Dharamvir Singh v. Union of India (SC 2013)",
+   "Sukhvinder Singh v. Union of India (SC 2014)"
+  ],
+  "counsel": [
+   "Col. I.S. Yadav (Retd.) (for respondents in Union of India v Col. Balbir Singh, DB 1.7.2025, all Union writs dismissed)",
+   "Praveen Kumar",
+   "O.S. Punia",
+   "Deepika Sheoran",
+   "Ajit Kakkar"
+  ],
+  "status": "In progress",
+  "notes": ""
+ },
+ "32": {
+  "grades": {
+   "SC_2024_1_642_676": 3,
+   "DLHC010508482014_2016-04-27": 3,
+   "DLHC010819832016_2019-01-15": 3,
+   "DLHC010510642014_2016-04-27": 3,
+   "DLHC010106202023_2024-07-18": 3,
+   "DLHC010511012014_2016-04-27": 3,
+   "DLHC010123382014_2015-01-19": 3,
+   "DLHC010015572019_2020-02-13": 3
+  },
+  "outcome_checks": {},
+  "missing": [],
+  "missing_text": [
+   "Calcutta Discount Co. v. ITO (SC 1961)",
+   "Hindustan Lever Ltd v. R.B. Wadkar (SC 2004)"
+  ],
+  "counsel": [
+   "C.S. Aggarwal, Sr. Adv. (Sonanshi Creations v ACIT, 10.1.2025)",
+   "Sandeep Goel (Shaily Juneja",
+   "Abhinav Jindal)",
+   "Kapil Goel",
+   "Prakash Kumar"
+  ],
+  "status": "In progress",
+  "notes": ""
+ },
+ "33": {
+  "grades": {
+   "SC_2024_10_1633_1708": 3,
+   "DLHC010070592022_2025-01-15": 3,
+   "DLHC010198912021_2021-12-15": 3,
+   "DLHC010841232024_2025-01-30": 3,
+   "DLHC010194072023_2025-10-09": 3,
+   "DLHC010326432022_2024-04-01": 3,
+   "DLHC010190892023_2023-11-10": 3,
+   "DLHC010041512023_2023-11-10": 3
+  },
+  "outcome_checks": {},
+  "missing": [
+   "SC_2022_3_638_662",
+   "DLHC010109282023_2025-02-04",
+   "DLHC010318182022_2025-01-10",
+   "DLHC010252592022_2024-08-27"
+  ],
+  "missing_text": [],
+  "counsel": [
+   "C.S. Aggarwal, Sr. Adv. (Sonanshi Creations v ACIT, 10.1.2025)",
+   "Sandeep Goel and Kapil Goel (Abhinav Jindal v ACIT, 2025)",
+   "Prakash Kumar (Primary Real Estate)"
+  ],
+  "status": "In progress",
+  "notes": ""
+ },
+ "34": {
+  "grades": {
+   "DLHC010817132024_2025-02-07": 3,
+   "DLHC010790762024_2025-02-07": 3,
+   "DLHC010668312024_2025-02-07": 3,
+   "DLHC010692392024_2025-02-07": 3,
+   "DLHC010817982024_2025-02-07": 3,
+   "DLHC010661742024_2025-02-07": 3,
+   "DLHC010521002025_2025-08-28": 3,
+   "DLHC010174292024_2024-10-16": 2
+  },
+  "outcome_checks": {},
+  "missing": [
+   "DLHC010336322024_2024-09-25",
+   "DLHC010667812025_2025-09-11"
+  ],
+  "missing_text": [
+   "Subhana Fashion v. Commissioner Delhi GST (Delhi HC 2024, [2024] 168 taxmann.com 107)",
+   "Sarla Enterprises v. Commissioner SGST, W.P.(C) 19268/2025 (Delhi HC 21.5.2026)"
+  ],
+  "counsel": [
+   "Sermon Rawat and Harshit Jain (Jai Amby Furniture, PC Quality Furniture)",
+   "Vibhas Kumar Jha, Rajat Pandey and Manju Pandey (Delhi Enterprises, JP Polymers, Vass Impex)",
+   "Khursheed Ahmad and Sameed Salim (Bharat Agro)"
+  ],
+  "status": "In progress",
+  "notes": ""
+ },
+ "35": {
+  "grades": {
+   "SC_2021_15_169_282": 2,
+   "SC_2022_9_300_451": 1,
+   "DLHC010423262021_2023-08-09": 3,
+   "DLHC010267712023_2024-07-26": 3,
+   "SC_2022_14_1138_1166": 3,
+   "DLHC010311082024_2025-05-20": 2,
+   "DLHC010116812021_2023-12-05": 2,
+   "DLHC010826832025_2025-10-28": 2
+  },
+  "outcome_checks": {},
+  "missing": [],
+  "missing_text": [],
+  "counsel": []
+ },
+ "36": {
+  "grades": {
+   "SC_2024_7_1236_1313": 2,
+   "DLHC013247452018_2022-08-22": 2,
+   "SC_2020_13_1093_1174": 3,
+   "DLHC010087492023_2025-03-19": 3,
+   "DLHC010872062024_2025-10-29": 2,
+   "DLHC013796672018_2022-09-20": 2,
+   "DLHC010875592024_2024-12-12": 2,
+   "DLHC010126642021_2021-11-09": 2
+  },
+  "outcome_checks": {
+   "SC_2024_7_1236_1313": {
+    "answer": "Yes",
+    "brieflee": "respondent"
+   }
+  },
+  "missing": [
+   "SC_2015_4_137_153"
+  ],
+  "missing_text": [
+   "Bhuwan Mohan Singh v. Meena (SC 2014)",
+   "Sunita Kachwaha v. Anil Kachwaha (SC 2014)"
+  ],
+  "counsel": [],
+  "status": "In progress",
+  "notes": ""
+ },
+ "37": {
+  "grades": {
+   "SC_2023_5_165_214": 2,
+   "DLHC010190402025_2025-09-24": 3,
+   "DLHC011105672014_2016-08-24": 3,
+   "DLHC010033112020_2023-12-14": 3,
+   "DLHC010724282014_2016-08-24": 3,
+   "DLHC012116602018_2022-02-18": 3,
+   "DLHC011282252008_2019-07-03": 3,
+   "DLHC012890302018_2022-02-18": 3
+  },
+  "outcome_checks": {},
+  "missing": [],
+  "missing_text": [
+   "Samar Ghosh v. Jaya Ghosh (SC 2007)",
+   "Naveen Kohli v. Neelu Kohli (SC 2006)",
+   "K. Srinivas Rao v. D.A. Deepa (SC 2013)"
+  ],
+  "counsel": [
+   "Sanjeev Sharma and Ankit Kashyap (for the husband",
+   "divorce on cruelty upheld in SK v RR, MAT.APP.(F.C.) 30/2024, Dec 2025)",
+   "Sanjay Rathi and Satish Pandey also appeared in sampled cruelty appeals, outcomes not verified"
+  ],
+  "status": "In progress",
+  "notes": ""
+ },
+ "38": {
+  "grades": {
+   "SC_2016_3_1075_1125": 1,
+   "SC_2017_7_765_822": 1,
+   "SC_2024_11_541_640": 1,
+   "DLHC010967432013_2015-01-12": 1,
+   "SC_2020_11_31_45": 2,
+   "SC_2023_14_62_73": 3,
+   "SC_2020_3_1189_1195": 3,
+   "DLHC010461772013_2022-10-11": 1
+  },
+  "outcome_checks": {},
+  "missing": [],
+  "missing_text": [
+   "National Insurance Co. v. Swaran Singh (SC 2004)",
+   "United India Insurance v. Lehru (SC 2003)",
+   "Pepsu Road Transport Corp. v. National Insurance Co. (SC 2013)"
+  ],
+  "counsel": [],
+  "status": "In progress",
+  "notes": "Only IFFCO Tokio v. Geeta Devi and Nirmala Kothari deal with fake or invalid licences. The Mukund Dewangan line concerns licence class (LMV/transport)."
+ },
+ "39": {
+  "grades": {
+   "DLHC010051012018_2024-01-24": 1,
+   "DLHC012013772009_2025-09-26": 3,
+   "DLHC013708952018_2024-01-24": 1,
+   "DLHC010296252007_2025-09-26": 3,
+   "DLHC010150692011_2025-09-26": 3,
+   "DLHC012013712009_2025-09-26": 3,
+   "DLHC011663682009_2025-09-26": 3,
+   "DLHC010003262012_2025-09-26": 3
+  },
+  "outcome_checks": {},
+  "missing": [
+   "SC_2020_3_1_328"
+  ],
+  "missing_text": [
+   "Pune Municipal Corp. v. Harakchand Misirimal Solanki (SC 2014)"
+  ],
+  "counsel": [],
+  "status": "In progress",
+  "notes": ""
+ },
+ "40": {
+  "grades": {
+   "SC_2020_8_583_730": 2,
+   "SC_2022_11_585_691": 3,
+   "DLHC010270882019_2019-07-29": 3,
+   "SC_2025_1_1209_1234": 3,
+   "SC_2019_14_781_817": 3,
+   "SC_2022_14_1_409": 2,
+   "SC_2015_14_328_373": 3,
+   "SC_2025_9_362_382": 3
+  },
+  "outcome_checks": {},
+  "missing": [],
+  "missing_text": [
+   "Dr. Pradeep Jain v. Union of India (SC 1984)",
+   "Saurabh Chaudri v. Union of India (SC 2003)"
+  ],
+  "counsel": [],
+  "status": "In progress",
+  "notes": ""
+ },
+ "41": {
+  "grades": {
+   "DLHC010029882024_2024-08-06": 3,
+   "DLHC010275292003_2019-12-19": 3,
+   "SC_2021_11_297_320": 3,
+   "DLHC011241242014_2022-09-06": 3,
+   "SC_2016_1_697_726": 2,
+   "DLHC010143702019_2023-08-18": 3,
+   "DLHC013467822018_2023-08-18": 3,
+   "DLHC011758432015_2018-08-07": 3
+  },
+  "outcome_checks": {},
+  "missing": [],
+  "missing_text": [
+   "Deepali Gundu Surwase v. Kranti Junior Adhyapak Mahavidyalaya (SC 2013)",
+   "Anoop Sharma v. Executive Engineer, Public Health Division (SC 2010)"
+  ],
+  "counsel": [],
+  "status": "In progress",
+  "notes": ""
+ },
+ "42": {
+  "grades": {
+   "SC_2023_11_1064_1134": 2,
+   "DLHC010140352023_2023-08-10": 2,
+   "SC_2024_8_401_450": 2,
+   "SC_2022_15_430_457": 2,
+   "DLHC013424082017_2019-08-09": 2,
+   "SC_2021_1_389_442": 2,
+   "SC_2022_3_1148_1172": 2,
+   "SC_2024_1_211_240": 3
+  },
+  "outcome_checks": {},
+  "missing": [],
+  "missing_text": [
+   "Ram Kishan v. Tarun Bajaj (SC 2014)",
+   "Kapildeo Prasad Sah v. State of Bihar (SC 1999)"
+  ],
+  "counsel": [],
+  "status": "In progress",
+  "notes": ""
+ },
+ "43": {
+  "grades": {
+   "SC_2024_7_136_162": 2,
+   "SC_2021_1_829_857": 2,
+   "DLHC010641652015_2015-12-10": 1,
+   "DLHC016635582015_2016-02-23": 1,
+   "DLHC010361802023_2025-02-14": 3,
+   "DLHC010315512021_2023-12-12": 2,
+   "DLHC010214822021_2023-07-19": 2,
+   "DLHC010307342021_2023-07-19": 2
+  },
+  "outcome_checks": {},
+  "missing": [
+   "SC_2019_3_1023_1035"
+  ],
+  "missing_text": [
+   "Konkan Railway Corp. v. Chenab Bridge Project Undertaking (SC 2023)",
+   "Delhi HC Division Bench s.37 appeals to be pulled separately]"
+  ],
+  "counsel": [
+   "Petitioners seen: Anusuya Salwan (MBL), Gopal Jain, Sr. Adv. (Indus Towers), Nakul Dewan, Sr. Adv. (Bharat Forge), Akhil Sibal, Sr. Adv. (Quadrant Televentures). Respondents seen: Ankur Chhibber and Tarun Johri (DMRC), Priya Kumar, Sr. Adv. (NCC), Ramesh Singh, Sr. Adv., Amit Sibal, Sr. Adv. Division Bench s.37 appeals not separately sampled."
+  ],
+  "status": "In progress",
+  "notes": "Question needs rewording: s.34 petitions are decided by single judges; Division Benches decide s.37 appeals. Suggest: \"Compare counsel appearing for appellants and respondents in s.37 appeals decided by Division Benches\". Counsel data is not in the candidates. Counsel not verified; Acceptable counsel left blank."
+ },
+ "44": {
+  "grades": {
+   "DLHC010149852023_2025-07-01": 2,
+   "DLHC010303562021_2022-11-14": 3,
+   "DLHC010331602019_2025-12-15": 3,
+   "DLHC010223512019_2025-12-15": 3,
+   "DLHC010079362022_2023-11-06": 1,
+   "SC_2025_8_805_901": 2,
+   "DLHC010227002021_2022-02-17": 1,
+   "DLHC010280782023_2025-07-01": 3
+  },
+  "outcome_checks": {
+   "DLHC010331602019_2025-12-15": {
+    "answer": "No",
+    "brieflee": "respondent"
+   },
+   "DLHC010223512019_2025-12-15": {
+    "answer": "Yes",
+    "brieflee": "respondent"
+   },
+   "DLHC010280782023_2025-07-01": {
+    "answer": "Yes",
+    "brieflee": "respondent"
+   }
+  },
+  "missing": [],
+  "missing_text": [
+   "Wander Ltd v. Antox India (SC 1990, appellate interference with interim injunctions)",
+   "already candidates ranks 3-4, with corrected parties/dates)"
+  ],
+  "counsel": [
+   "Neeraj Grover (for Bata",
+   "DB upheld single-judge injunction, Leayan Global v. Bata, 15.12.2025)",
+   "Sandeep Sethi, Sr. Adv. (for Carlton Shoes",
+   "DB upheld injunction against VIP Industries, 1.7.2025)"
+  ],
+  "status": "In progress",
+  "notes": ""
+ },
+ "45": {
+  "grades": {
+   "DLHC010573402018_2025-10-13": 1,
+   "DLHC011728522012_2015-11-27": 3,
+   "DLHC011557892012_2015-11-27": 3,
+   "DLHC010294902023_2024-02-07": 3,
+   "DLHC010550662013_2015-03-20": 2,
+   "DLHC010294782023_2024-02-07": 3,
+   "DLHC010294892023_2024-02-07": 3,
+   "DLHC010396172021_2024-04-24": 2
+  },
+  "outcome_checks": {},
+  "missing": [],
+  "missing_text": [
+   "F. Hoffmann-La Roche v. Cipla, CS(OS) 89/2008 (Delhi HC single judge 7.9.2012, infringement and revocation decided together)",
+   "F. Hoffmann-La Roche v. Cipla, FAO(OS) 188/2008 (Delhi HC DB 24.4.2009, interim injunction refused)"
+  ],
+  "counsel": [
+   "Pravin Anand (patentee side) and Arvind Nigam, Sr. Adv. (defendant side), both in Roche v. Cipla (DB 27.11.2015, infringement and revocation decided together)"
+  ],
+  "status": "In progress",
+  "notes": "Prathiba M. Singh appeared for Cipla in 2015 but is now a Delhi High Court judge, so not suggested."
+ },
+ "46": {
+  "grades": {
+   "SC_2024_10_1633_1708": 3,
+   "DLHC010070592022_2025-01-15": 3,
+   "DLHC010841232024_2025-01-30": 3,
+   "DLHC010190892023_2023-11-10": 3,
+   "DLHC010041512023_2023-11-10": 3,
+   "DLHC010015342022_2023-11-10": 3,
+   "DLHC010085812023_2023-11-10": 3,
+   "DLHC010171922023_2023-11-10": 3
+  },
+  "outcome_checks": {},
+  "missing": [
+   "SC_2022_3_638_662",
+   "DLHC010109282023_2025-02-04",
+   "DLHC010718102023_2025-10-29",
+   "DLHC010318182022_2025-01-10"
+  ],
+  "missing_text": [],
+  "counsel": [
+   "C.S. Aggarwal, Sr. Adv.",
+   "Sandeep Goel",
+   "Kapil Goel",
+   "Prakash Kumar. For the Revenue: Vipul Agrawal, SSC",
+   "Gaurav Gupta, SSC",
+   "Shlok Chandra, Sr. Standing Counsel."
+  ],
+  "status": "In progress",
+  "notes": ""
+ },
+ "47": {
+  "grades": {
+   "SC_2022_11_140_152": 3,
+   "SC_2019_10_1098_1110": 3,
+   "DLHC010392822019_2023-05-30": 3,
+   "SC_2025_2_404_423": 3,
+   "DLHC010190892011_2022-04-01": 3,
+   "SC_2015_1_849_874": 3,
+   "SC_2022_4_143_161": 3,
+   "DLHC010207482003_2015-03-03": 3
+  },
+  "outcome_checks": {},
+  "missing": [],
+  "missing_text": [
+   "Captain M. Paul Anthony v. Bharat Gold Mines (SC 1999)",
+   "G.M. Tank v. State of Gujarat (SC 2006)",
+   "Ajit Kumar Nag v. General Manager (PJ), Indian Oil Corp. (SC 2005)"
+  ],
+  "counsel": [],
+  "status": "In progress",
+  "notes": ""
+ },
+ "48": {
+  "grades": {
+   "DLHC010163832020_2020-06-20": 2,
+   "DLHC013336462018_2024-04-22": 1,
+   "DLHC010065752020_2021-01-12": 2,
+   "DLHC010117722019_2019-04-05": 2,
+   "DLHC010047092023_2023-07-06": 2,
+   "DLHC010260242023_2023-09-18": 2,
+   "SC_2025_5_1263_1278": 2,
+   "DLHC010307312019_2019-12-03": 2
+  },
+  "outcome_checks": {},
+  "missing": [],
+  "missing_text": [
+   "National Projects Construction Corp. v. Ishvakoo India Pvt Ltd (SC 11.8.2026, s.9 BG petitions",
+   "already a candidate in Q48)"
+  ],
+  "counsel": [
+   "B.B. Gupta, Sr. Adv.",
+   "Rajiv Nayar, Sr. Adv.",
+   "Akhil Sibal, Sr. Adv.",
+   "Jayant Mehta, Sr. Adv. (s.9 BG petitions",
+   "follow-on s.34 results not checked)"
+  ],
+  "status": "In progress",
+  "notes": "No candidate shows a s.9 BG petition followed by a s.34 decision. This needs a linked-matter search, not a single-judgment search. Counsel not verified; Acceptable counsel left blank."
+ },
+ "49": {
+  "grades": {
+   "DLHC010319532020_2022-05-31": 2,
+   "DLHC010038002025_2025-11-20": 2,
+   "DLHC010120322023_2024-10-18": 2,
+   "DLHC010125312022_2023-01-05": 2,
+   "SC_2020_3_348_358": 2,
+   "DLHC010177552020_2022-05-23": 2,
+   "DLHC010379162023_2024-10-18": 2,
+   "DLHC010088622023_2024-02-05": 2
+  },
+  "outcome_checks": {},
+  "missing": [
+   "SC_2023_3_697_713"
+  ],
+  "missing_text": [],
+  "counsel": [],
+  "status": "In progress",
+  "notes": "Cannot tell from candidates which Delhi HC orders were later taken up by the SC. Needs a citation-graph check."
+ },
+ "50": {
+  "grades": {
+   "SC_2025_8_805_901": 1,
+   "DLHC010224882019_2025-07-01": 1,
+   "DLHC010574912006_2018-04-05": 2,
+   "DLHC010303562021_2022-11-14": 1,
+   "DLHC010224892019_2025-07-01": 1,
+   "DLHC010225292019_2025-07-01": 1,
+   "DLHC010582762006_2015-08-24": 3,
+   "DLHC010225272019_2025-07-01": 1
+  },
+  "outcome_checks": {},
+  "missing": [
+   "DLHC010026812016_2022-05-09"
+  ],
+  "missing_text": [
+   "copyright in film)",
+   "Kanungo Media (P) Ltd v. RGV Film Factory, 2007 (34) PTC 591 (Delhi HC, film titles)",
+   "Sholay Media & Entertainment v. Vodafone Essar Mobile Services, CS(OS) 490/2011 (Delhi HC 9.5.2011, copyright in the film)",
+   "Sholay Media & Entertainment v. Ajit Sippy, CS(OS) 1691/2008 (Delhi HC 8.1.2010)"
+  ],
+  "counsel": [
+   "Pravin Anand (with Geetanjali Visvanathan, Dhruv Anand, Shrawan Chopra), for the Sholay plaintiffs in CS(OS) 1892/2006 (24.8.2015) and CS(COMM) 8/2016 (9.5.2022). Defendants were ex parte in 2015."
+  ],
+  "status": "In progress",
+  "notes": "Only Sholay Media combines trademark and copyright over a film. Other candidates are design/trademark only."
+ },
+ "51": {
+  "grades": {
+   "DLHC010318982019_2023-09-25": 2,
+   "DLHC010064002019_2023-09-25": 2,
+   "DLHC010064012019_2023-09-25": 2,
+   "DLHC010081722022_2023-04-25": 3,
+   "DLHC012058702016_2017-07-18": 2,
+   "SC_2022_2_1016_1040": 3,
+   "DLHC012070662016_2017-07-18": 2,
+   "DLHC013423432017_2017-09-01": 2
+  },
+  "outcome_checks": {},
+  "missing": [],
+  "missing_text": [
+   "Charan Dass Duggal v. Brahma Nand (SC 1983)",
+   "Baldev Singh Bajwa v. Monish Saini (SC 2005)"
+  ],
+  "counsel": [],
+  "status": "In progress",
+  "notes": "Question is a count/ranking question inside a Complex type. Candidates only show individual rulings. Counsel not verified (header sample did not show who acted for tenants who won); left blank."
+ },
+ "52": {
+  "grades": {
+   "SC_2022_2_183_195": 3,
+   "DLHC010406472023_2024-04-10": 3,
+   "SC_2016_10_1_856": 0,
+   "DLHC010484982024_2025-08-08": 3,
+   "SC_2022_14_1_409": 0,
+   "SC_2024_10_961_1312": 0,
+   "DLHC010828622025_2025-12-18": 3,
+   "SC_2021_11_1083_1105": 1
+  },
+  "outcome_checks": {},
+  "missing": [],
+  "missing_text": [
+   "Erusian Equipment & Chemicals v. State of West Bengal (SC 1975)",
+   "Gorkha Security Services v. Govt. of NCT of Delhi (SC 2014)",
+   "UMC Technologies v. Food Corporation of India (SC 2020)",
+   "already a candidate, rank 7)"
+  ],
+  "counsel": [
+   "Sandeep Sethi, Sr. Adv.",
+   "Amit Sibal, Sr. Adv.",
+   "Sunil Dalal, Sr. Adv.",
+   "Shashank Garg, Sr. Adv. (for BLS International v. Union of India, debarment set aside 18.12.2025)"
+  ],
+  "status": "In progress",
+  "notes": "Only ranks 1, 2, 4 and 7 deal with blacklisting."
+ },
+ "53": {
+  "grades": {
+   "DLHC010817132024_2025-02-07": 3,
+   "DLHC010790762024_2025-02-07": 3,
+   "DLHC010668312024_2025-02-07": 3,
+   "DLHC010692392024_2025-02-07": 3,
+   "DLHC010817982024_2025-02-07": 3,
+   "DLHC010661742024_2025-02-07": 3,
+   "DLHC010521002025_2025-08-28": 3,
+   "DLHC010174292024_2024-10-16": 2
+  },
+  "outcome_checks": {},
+  "missing": [
+   "DLHC010336322024_2024-09-25"
+  ],
+  "missing_text": [
+   "Subhana Fashion v. Commissioner Delhi GST (Delhi HC 2024)",
+   "Sarla Enterprises v. Commissioner SGST, W.P.(C) 19268/2025 (Delhi HC 21.5.2026)"
+  ],
+  "counsel": [
+   "Sermon Rawat and Harshit Jain",
+   "Vibhas Kumar Jha, Rajat Pandey and Manju Pandey",
+   "Khursheed Ahmad and Sameed Salim (appeared for taxpayers in the Addichem/Jai Amby batch)",
+   "outcomes not individually checked"
+  ],
+  "status": "In progress",
+  "notes": "Outcomes of the Addichem/Jai Amby batch were not individually checked, so these are counsel who appeared, not confirmed winners."
+ },
+ "54": {
+  "grades": {
+   "DLHC011472482016_2017-09-11": 1,
+   "DLHC011049172014_2015-09-04": 1,
+   "SC_2024_11_541_640": 0,
+   "DLHC012027902016_2016-09-30": 0,
+   "SC_2017_7_765_822": 0,
+   "DLHC011121662024_2025-05-05": 0,
+   "DLHC010405542022_2022-11-16": 3,
+   "SC_2015_14_91_117": 0
+  },
+  "outcome_checks": {},
+  "missing": [],
+  "missing_text": [
+   "Order XXXIX Rr 1-2 application dismissed, Rule 4 application allowed). Suit number to be confirmed."
+  ],
+  "counsel": [],
+  "status": "In progress",
+  "notes": "Lookup is for a single judgment. Rank 7 is the Division Bench decision (16.11.2022). The single-judge order is not among the candidates."
+ },
+ "55": {
+  "grades": {
+   "SC_2019_14_78_94": 1,
+   "SC_2025_4_1550_1571": 1,
+   "DLHC011121642024_2025-03-27": 1,
+   "DLHC010148412025_2025-03-27": 1,
+   "SC_2025_5_1279_1305": 1,
+   "SC_2017_2_220_240": 1,
+   "DLHC010587752024_2025-07-01": 1,
+   "DLHC010730102024_2025-07-01": 1
+  },
+  "outcome_checks": {},
+  "missing": [],
+  "missing_text": [],
+  "counsel": [],
+  "status": "In progress",
+  "notes": "No candidate was decided in 2023, so none matches the date filter. UoI is respondent in most, but the year filter fails."
+ },
+ "56": {
+  "grades": {
+   "SC_2024_11_2173_2328": 3,
+   "DLHC010230562023_2023-11-29": 2,
+   "DLHC010189802023_2023-11-29": 2,
+   "DLHC010572602024_2025-07-09": 2,
+   "DLHC010572592024_2025-07-09": 2,
+   "DLHC010334122023_2025-05-31": 2,
+   "SC_2019_17_275_304": 3,
+   "DLHC010013602019_2020-01-20": 2
+  },
+  "outcome_checks": {
+   "SC_2019_17_275_304": {
+    "answer": "Yes",
+    "brieflee": "appointed"
+   }
+  },
+  "missing": [
+   "SC_2017_7_409_441",
+   "SC_2021_7_768_786"
+  ],
+  "missing_text": [
+   "Voestalpine Schienen GmbH v. DMRC (SC 2017)",
+   "Govt. of Haryana PWD v. G.F. Toll Road Pvt Ltd (SC 2019)"
+  ],
+  "counsel": [],
+  "status": "In progress",
+  "notes": ""
+ },
+ "57": {
+  "grades": {
+   "DLHC010227002021_2022-02-17": 1,
+   "SC_2022_2_321_362": 0,
+   "DLHC015697462018_2021-06-04": 1,
+   "DLHC014461162018_2019-05-03": 0,
+   "DLHC010149852023_2025-07-01": 0,
+   "DLHC010500672019_2021-12-07": 0,
+   "DLHC010185892025_2025-08-22": 1,
+   "DLHC011295832012_2024-05-28": 0
+  },
+  "outcome_checks": {},
+  "missing": [
+   "DLHC010195472021_2024-10-28"
+  ],
+  "missing_text": [
+   "Hindustan Unilever Ltd v. Vansh Cosmetic (Bom HC 27.7.2021)",
+   "Hindustan Unilever Ltd v. Nitin Kumar Singh, CS(COMM) 399/2021 (Delhi HC)",
+   "Hindustan Unilever Ltd v. Kwick Living (I) Pvt Ltd, CS(COMM) 904/2026 (Delhi HC 10.9.2026)"
+  ],
+  "counsel": [],
+  "status": "In progress",
+  "notes": "No candidate has Hindustan Unilever as a party. The few references are to HUL v. Reckitt Benckiser / HUL v. Registrar of Trade Marks cited inside other judgments."
+ },
+ "58": {
+  "grades": {},
+  "outcome_checks": {},
+  "missing": [],
+  "missing_text": [],
+  "counsel": [],
+  "status": "Done",
+  "notes": "Makes sense. Needs outcome categories defined (allowed, partly allowed, dismissed, withdrawn/settled)."
+ },
+ "59": {
+  "grades": {},
+  "outcome_checks": {},
+  "missing": [],
+  "missing_text": [],
+  "counsel": [],
+  "status": "Done",
+  "notes": "Makes sense. \"Granted\" should include interim/regular bail; define whether suspension of sentence is in scope."
+ },
+ "60": {
+  "grades": {},
+  "outcome_checks": {},
+  "missing": [],
+  "missing_text": [],
+  "counsel": [
+   "Vipul Agrawal (SSC)",
+   "Gaurav Gupta (SSC)",
+   "Shlok Chandra (Sr. Standing Counsel)",
+   "Priya Sarkar (Standing Counsel)",
+   "Debesh Panda",
+   "Gibran Naushad (JSC). Seen for the Revenue in a sample of about 8 Delhi HC reassessment writs",
+   "frequency not counted."
+  ],
+  "status": "Done",
+  "notes": "Makes sense, but this is a ranked list of advocates, not a count. Consider labelling Lookup. Needs counsel data from the judgment header."
+ },
+ "61": {
+  "grades": {},
+  "outcome_checks": {},
+  "missing": [],
+  "missing_text": [],
+  "counsel": [],
+  "status": "Done",
+  "notes": "Makes sense. Define whether \"granted\" includes ex parte ad interim orders."
+ }
+}

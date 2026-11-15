@@ -21,3 +21,19 @@ python tool/eval/run_eval.py --url http://localhost:8000  # the whole service, w
 The "Evaluate search" workflow runs the search-only score on GitHub Actions with the published database.
 
 Candidates come from one search method, so judgments that method never finds can only enter the gold set through the lawyer's "Missing judgments" column. `unjudged@10` counts top-10 results that nobody graded: when it is high, label more before trusting the score.
+
+## Baseline, 15 Nov 2026 (search only, no AI)
+
+Labels: 456 candidate judgments graded across 57 questions, plus missing judgments named by the lawyer (47 found in the database, 110 not in it, mostly Supreme Court rulings before 2015 or other courts). Result file: `results/2026-11-15-search-only.json`.
+
+| Measure | Score |
+| --- | --- |
+| Route accuracy | 0.98 (60 of 61) |
+| Recall@10 | 0.65 (simple 0.66, complex 0.56) |
+| Recall@30 | 0.80 |
+| MRR | 0.82 |
+| nDCG@10 | 0.62 |
+| Unjudged in top 10 | 4.7 of 10 |
+| Outcome reading correct | 11 of 12 checked |
+
+Read with care: the candidates came from this same keyword search, so the scores flatter it, and about half of each top 10 was never graded. Weakest questions: 30 (CRPF/BSF dismissal, nothing relevant found), 43, 44 and 46 (complex), 5 (Perkins Eastman), 20 (HUF partition).
