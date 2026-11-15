@@ -86,7 +86,7 @@ ask_key() {  # file, prompt
 ask_key groq.key "Groq (free at console.groq.com)"
 ask_key gemini.key "Gemini"
 GROQ_API_KEY=$(cat groq.key); GEMINI_API_KEY=$(cat gemini.key)
-export GROQ_API_KEY GEMINI_API_KEY KNOWLEDGE_DB="$HOME_DIR/knowledge.db" WEB_DIR="$HOME_DIR/web"
+export GROQ_API_KEY GEMINI_API_KEY KNOWLEDGE_DB="$HOME_DIR/knowledge.db" KNOWLEDGE_DB_SHA256="$WANT" TRACE_PATH="$HOME_DIR/trace.jsonl" WEB_DIR="$HOME_DIR/web"
 [ -n "$GROQ_API_KEY" ] || unset GROQ_API_KEY
 [ -n "$GEMINI_API_KEY" ] || unset GEMINI_API_KEY
 

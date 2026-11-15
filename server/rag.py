@@ -200,6 +200,14 @@ class KnowledgeLayer:
         rows.sort(key=lambda r: (r["sufficient_evidence"], r["score"], r["similar_matters"]), reverse=True)
         return rows
 
+    def texts(self, record_ids: list[str], max_chars: int = 400_000) -> dict[str, str]:
+        """Full text of each decision (its chunks joined), for checking quotations."""
+        out = {}
+        for rid in record_ids:
+            rows = self.db.execute("SELECT text FROM chunks WHERE record_id = ? ORDER BY chunk_index", (rid,)).fetchall()
+            out[rid] = " ".join(r["text"] for r in rows)[:max_chars]
+        return out
+
     def record_card(self, h: Retrieved, rating: dict | None = None) -> dict:
         m = h.meta
         return {"relevance": rating.get("relevance") if rating else None, "relevance_note": rating.get("why") if rating else None,

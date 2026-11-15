@@ -1,0 +1,42 @@
+name: Evaluate search
+
+# Scores search against the lawyer-labelled gold set (tool/eval/goldset/labels.json).
+# search-only: downloads the published knowledge database and runs keyword
+# search with no AI (free and repeatable). service: asks a running service.
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "search-only or service"
+        default: search-only
+      url:
+        description: "Service URL for mode=service (blank: the site's configured service)"
+        default: ""
+
+jobs:
+  eval:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Download the knowledge database
+        if: inputs.mode == 'search-only'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release download knowledge-db -R "$GITHUB_REPOSITORY" -p 'knowledge.db.gz.part-*' -p knowledge.db.sha256
+          cat knowledge.db.gz.part-* | gunzip > knowledge.db
+          rm knowledge.db.gz.part-*
+          sha256sum -c knowledge.db.sha256
+      - name: Score
+        env:
+          URL: ${{ inputs.url || vars.BRIEFLEE_KNOWLEDGE_URL || 'https://brieflee-knowledge-to1s.onrender.com' }}
+        run: |
+          if [ "${{ inputs.mode }}" = "service" ]; then python tool/eval/run_eval.py --url "$URL"; else python tool/eval/run_eval.py --db knowledge.db; fi
+      - uses: actions/upload-artifact@v4
+        with:
+          name: eval-results
+          path: tool/eval/results/

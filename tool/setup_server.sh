@@ -68,7 +68,7 @@ After=network-online.target
 User=brieflee
 WorkingDirectory=$DIR
 EnvironmentFile=$DIR/env
-Environment=KNOWLEDGE_DB=$DIR/knowledge.db UV_CACHE_DIR=/var/cache/brieflee-uv HOME=$DIR
+Environment=KNOWLEDGE_DB=$DIR/knowledge.db KNOWLEDGE_DB_SHA256=$WANT TRACE_PATH=$DIR/trace.jsonl UV_CACHE_DIR=/var/cache/brieflee-uv HOME=$DIR
 ExecStart=/usr/local/bin/uv run --no-project --isolated --python 3.12 --with-requirements server/requirements.txt uvicorn app:app --app-dir server --host 127.0.0.1 --port 8000 --workers 2
 Restart=always
 
